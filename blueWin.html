@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>blueWin — 입찰 전략 AI 어시스턴트</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f7fc; --surface:#fff; --surface-2:#f0f4fb;
+  --border:#dde5f4; --border-strong:#b8cafe;
+  --blue-600:#1847c2; --blue-500:#2563eb; --blue-400:#3b82f6;
+  --blue-100:#dbeafe; --blue-50:#eff6ff;
+  --text-1:#0c1930; --text-2:#3d5070; --text-3:#7e95bb;
+  --green:#059669; --green-bg:#ecfdf5;
+  --amber:#b45309; --amber-bg:#fffbeb;
+  --red:#c0152a; --red-bg:#fff1f2;
+  --purple:#7c3aed; --purple-bg:#f5f3ff;
+  --radius:10px; --radius-sm:6px;
+  --shadow:0 1px 4px rgba(20,50,120,0.07),0 4px 16px rgba(20,50,120,0.05);
+  --shadow-sm:0 1px 3px rgba(20,50,120,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'IBM Plex Sans KR',-apple-system,sans-serif;background:var(--bg);color:var(--text-1);min-height:100vh;font-size:15px;}
+.layout{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── Header ── */
+.header{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:100;display:flex;align-items:center;padding:0 32px;height:64px;}
+.logo-row{display:flex;align-items:center;gap:10px;margin-right:36px;flex-shrink:0;}
+.logo-mark{width:32px;height:32px;background:var(--blue-500);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.logo-name{font-size:17px;font-weight:700;letter-spacing:-0.5px;}
+.header-nav{display:flex;align-items:center;gap:2px;flex:1;}
+.nav-tab{display:flex;align-items:center;gap:8px;padding:0 16px;height:64px;cursor:pointer;color:var(--text-3);font-size:13px;font-weight:500;border-bottom:2px solid transparent;transition:all .12s;white-space:nowrap;}
+.nav-tab:hover{color:var(--text-1);}
+.nav-tab.active{color:var(--blue-500);font-weight:700;border-bottom-color:var(--blue-500);}
+.nav-tab-badge{background:var(--blue-100);color:var(--blue-500);font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;}
+.nav-tab-badge.amber{background:#fef3c7;color:var(--amber);}
+.header-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+.notif-btn{position:relative;width:38px;height:38px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .12s;}
+.notif-btn:hover{border-color:var(--blue-400);background:var(--blue-50);}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:17px;height:17px;background:var(--red);border-radius:50%;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);}
+.header-profile{display:flex;align-items:center;gap:9px;padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;border:1px solid var(--border);transition:all .12s;}
+.header-profile:hover{border-color:var(--blue-400);background:var(--blue-50);}
+.avatar{width:30px;height:30px;background:var(--blue-500);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;}
+
+/* ── Layout ── */
+.main{flex:1;}
+.page-header{padding:20px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);}
+.page-title{font-size:19px;font-weight:700;letter-spacing:-.3px;}
+.page-sub{font-size:12px;color:var(--text-3);margin-top:3px;}
+.page-actions{display:flex;gap:10px;align-items:center;}
+.content{padding:28px 32px;}
+.page{display:none;}
+.page.on{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Buttons ── */
+.btn{padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all .12s;}
+.btn-primary{background:var(--blue-500);color:#fff;}
+.btn-primary:hover{background:var(--blue-600);}
+.btn-secondary{background:var(--surface);color:var(--text-2);border:1px solid var(--border);}
+.btn-secondary:hover{border-color:var(--blue-400);color:var(--blue-500);background:var(--blue-50);}
+.btn-success{background:#059669;color:#fff;}
+.btn-success:hover{background:#047857;}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid #fecaca;}
+.btn-danger:hover{background:#fee2e2;}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm);}
+.card-title{font-size:13px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:16px;display:flex;align-items:center;gap:6px;}
+
+/* ── Table ── */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);}
+.tbl td{padding:13px 14px;font-size:14px;border-bottom:1px solid #f0f4fb;vertical-align:middle;}
+.tbl tr:hover td{background:var(--blue-50);}
+.tbl tr:last-child td{border-bottom:none;}
+
+/* ── Pills ── */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.pill.go{background:var(--green-bg);color:var(--green);}
+.pill.review{background:var(--amber-bg);color:var(--amber);}
+.pill.nogo{background:var(--red-bg);color:var(--red);}
+.pill.pending{background:var(--surface-2);color:var(--text-3);}
+.pill.inprogress{background:var(--blue-50);color:var(--blue-500);}
+.pill.new{background:var(--green-bg);color:var(--green);}
+.pill.deadline{background:var(--amber-bg);color:var(--amber);}
+
+/* ── Section label ── */
+.section-label{font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── Grid ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+/* ── Inputs ── */
+input[type=text],input[type=tel],textarea,select{font-family:inherit;font-size:14px;color:var(--text-1);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;transition:border-color .12s;width:100%;}
+input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue-400);}
+textarea{resize:vertical;line-height:1.7;}
+
+/* ── Load bar ── */
+.load-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;display:none;}
+.load-bar.on{display:block;}
+.load-bar::after{content:'';display:block;width:35%;height:100%;background:var(--blue-400);animation:slide 1s infinite;}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(320%)}}
+
+/* ── Collect page ── */
+.crawl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;box-shadow:var(--shadow-sm);margin-bottom:12px;transition:border-color .12s;}
+.crawl-card:hover{border-color:var(--blue-400);}
+.crawl-title{font-size:15px;font-weight:700;margin-bottom:5px;}
+.crawl-meta{font-size:12px;color:var(--text-3);margin-bottom:10px;}
+.crawl-keywords{font-size:12px;color:var(--text-2);}
+.crawl-keywords span{color:var(--blue-500);font-weight:600;}
+.filter-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.filter-btn{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-3);font-family:inherit;transition:all .12s;}
+.filter-btn:hover{color:var(--blue-500);border-color:var(--blue-400);}
+.filter-btn.on{background:var(--blue-500);border-color:var(--blue-500);color:#fff;}
+
+/* ── AI keyword suggestion ── */
+.ai-suggest-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(135deg,#f0f4ff,#f5f0ff);border:1px solid var(--blue-100);border-radius:var(--radius-sm);margin-top:10px;}
+.ai-suggest-label{font-size:11px;font-weight:700;color:var(--purple);white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.ai-suggest-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+.ai-suggest-chip{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px dashed var(--purple);background:#fff;color:var(--purple);font-family:inherit;transition:all .12s;display:inline-flex;align-items:center;gap:4px;}
+.ai-suggest-chip:hover{background:var(--purple-bg);border-style:solid;}
+.ai-suggest-chip.added{background:var(--purple-bg);border-style:solid;opacity:.5;cursor:default;}
+.ai-suggest-refresh{padding:4px 10px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-3);font-family:inherit;transition:all .12s;white-space:nowrap;display:flex;align-items:center;gap:4px;}
+.ai-suggest-refresh:hover{color:var(--purple);border-color:var(--purple);}
+.ai-suggest-spin{display:inline-block;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Analyze page ── */
+.analyzing-overlay{display:none;flex-direction:column;align-items:center;justify-content:center;padding:48px;text-align:center;}
+.analyzing-overlay.on{display:flex;}
+.generating-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue-400);margin:0 3px;animation:bounce 1.2s infinite;}
+.generating-dot:nth-child(2){animation-delay:.2s}
+.generating-dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+
+.result-box{display:none;}
+.result-box.on{display:block;animation:fadeUp .25s ease;}
+
+/* ── Eligibility ── */
+.eligibility-box{padding:14px 16px;border-radius:var(--radius-sm);border:1px solid;}
+.eligibility-box.ok{background:#f0fdf4;border-color:#86efac;}
+.eligibility-box.warn{background:var(--amber-bg);border-color:#fcd34d;}
+.eligibility-title{font-size:12px;font-weight:800;margin-bottom:8px;}
+.eligibility-box.ok .eligibility-title{color:#15803d;}
+.eligibility-box.warn .eligibility-title{color:var(--amber);}
+.eligibility-row{display:flex;align-items:flex-start;gap:8px;font-size:12px;margin-bottom:4px;line-height:1.5;}
+.eligibility-row:last-child{margin-bottom:0;}
+.participation-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.participation-chip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;}
+.participation-chip.ok{background:#dcfce7;color:#166534;}
+.participation-chip.recommended{background:var(--blue-500);color:#fff;}
+
+/* ── Score rings ── */
+.score-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+.score-box{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;}
+.score-box-label{font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;}
+.score-sub-text{font-size:11px;color:var(--text-2);margin-top:6px;}
+.ring-wrap{position:relative;width:80px;height:80px;margin:0 auto;}
+.ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:#e5eaf5;stroke-width:6;}
+.ring-fill{fill:none;stroke-width:6;stroke-linecap:round;}
+.ring-fill.green{stroke:var(--green);}
+.ring-fill.amber{stroke:#d97706;}
+.ring-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:17px;font-weight:800;font-family:'IBM Plex Mono',monospace;}
+.ring-num.green{color:var(--green);}
+.ring-num.amber{color:#d97706;}
+
+/* ── Verdict ── */
+.verdict{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:800;}
+.verdict.go{background:var(--green-bg);border:1px solid #a7f3d0;color:var(--green);}
+
+/* ── Competitiveness detail ── */
+.comp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.comp-item{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center;}
+.comp-item-label{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;}
+.comp-item-score{font-size:20px;font-weight:800;font-family:'IBM Plex Mono',monospace;margin-bottom:2px;}
+.comp-item-max{font-size:10px;color:var(--text-3);margin-bottom:6px;}
+.comp-item-bar{height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;margin-bottom:6px;}
+.comp-item-fill{height:100%;border-radius:2px;}
+.comp-item-note{font-size:10px;color:var(--text-2);line-height:1.4;}
+
+/* ── Assets & risks ── */
+.asset-row{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surface-2);border-radius:var(--radius-sm);margin-bottom:5px;font-size:13px;}
+.asset-dot{width:5px;height:5px;border-radius:50%;background:var(--blue-400);flex-shrink:0;}
+.asset-name{font-weight:600;flex:1;}
+.asset-badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:3px;background:var(--blue-100);color:var(--blue-600);}
+.risk-item{display:flex;gap:9px;padding:12px 14px;border-radius:var(--radius-sm);font-size:13px;line-height:1.6;margin-bottom:8px;}
+.risk-item.high{background:#fff1f2;border:1px solid #fecaca;}
+.risk-item.mid{background:var(--amber-bg);border:1px solid #fcd34d;}
+.risk-item.low{background:var(--blue-50);border:1px solid var(--blue-100);}
+.risk-title{font-weight:700;margin-bottom:2px;}
+.risk-item.high .risk-title{color:#b91c1c;}
+.risk-item.mid .risk-title{color:var(--amber);}
+.risk-item.low .risk-title{color:var(--blue-600);}
+.risk-desc{color:var(--text-2);font-size:12px;}
+
+/* ── Bid history ── */
+.bid-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.bid-stat-box{background:var(--surface-2);border-radius:var(--radius-sm);padding:10px;text-align:center;}
+.bid-stat-label{font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;margin-bottom:4px;}
+.bid-stat-val{font-size:18px;font-weight:800;font-family:'IBM Plex Mono',monospace;}
+.bid-history-item{padding:12px 0;border-bottom:1px solid #f0f4fb;}
+.bid-history-item:last-child{border-bottom:none;padding-bottom:0;}
+.bid-history-year{font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:3px;}
+.bid-history-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.bid-history-meta{display:flex;gap:12px;font-size:12px;color:var(--text-2);flex-wrap:wrap;}
+
+/* ── Competitor cards ── */
+.competitor-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px;}
+.competitor-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.competitor-rank{width:26px;height:26px;border-radius:50%;background:var(--blue-500);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.competitor-name{font-size:14px;font-weight:700;flex:1;}
+.source-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;}
+.source-badge.kipris{background:#e0f2fe;color:#0369a1;}
+.source-badge.mas{background:#ede9fe;color:#6d28d9;}
+.source-badge.bid{background:#dcfce7;color:#166534;}
+.threat-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.threat-badge.high{background:#fff1f2;border:1px solid #fecaca;color:#b91c1c;}
+.threat-badge.mid{background:var(--amber-bg);border:1px solid #fcd34d;color:var(--amber);}
+.threat-badge.low{background:var(--green-bg);border:1px solid #a7f3d0;color:var(--green);}
+.competitor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.competitor-stat{background:var(--surface-2);border-radius:var(--radius-sm);padding:9px 11px;}
+.competitor-stat-label{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.competitor-stat-val{font-size:12px;font-weight:700;color:var(--text-1);}
+.competitor-stat-sub{font-size:11px;color:var(--text-3);margin-top:2px;}
+
+/* ── Comments ── */
+.comment-thread{display:flex;flex-direction:column;gap:8px;}
+.comment-item{display:flex;gap:8px;}
+.comment-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px;}
+.comment-bubble{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:13px;line-height:1.6;flex:1;}
+.comment-who{font-size:12px;font-weight:700;margin-bottom:3px;}
+.comment-when{color:var(--text-3);font-weight:400;}
+.member-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;background:var(--surface-2);border:1px solid var(--border);font-size:12px;font-weight:600;}
+.member-chip .chip-av{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;}
+
+/* ── Proposal page ── */
+.proposal-layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+.proposal-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden;}
+.proposal-section-header{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface-2);}
+.proposal-section-num{width:24px;height:24px;border-radius:50%;background:var(--blue-500);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.proposal-section-title{font-size:13px;font-weight:700;flex:1;}
+.proposal-section-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.proposal-section-badge.ai{background:linear-gradient(135deg,var(--blue-100),#ede9fe);color:var(--blue-600);}
+.proposal-section-body{padding:18px;}
+.proposal-textarea{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-family:inherit;font-size:14px;line-height:1.8;color:var(--text-1);background:var(--surface);resize:vertical;transition:border-color .12s;min-height:120px;}
+.proposal-textarea:focus{outline:none;border-color:var(--blue-400);}
+.proposal-context-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(135deg,var(--blue-50),#f5f0ff);border:1px solid var(--blue-100);border-radius:var(--radius-sm);font-size:12px;margin-bottom:10px;}
+.proposal-step-bar{display:flex;align-items:center;margin-bottom:24px;padding:0 4px;}
+.proposal-step{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-3);flex:1;}
+.proposal-step.done{color:var(--green);}
+.proposal-step.active{color:var(--blue-500);}
+.proposal-step-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:var(--surface);flex-shrink:0;}
+.proposal-step.done .proposal-step-dot{background:var(--green);border-color:var(--green);color:#fff;}
+.proposal-step.active .proposal-step-dot{background:var(--blue-500);border-color:var(--blue-500);color:#fff;}
+.proposal-step-line{flex:1;height:2px;background:var(--border);margin:0 6px;}
+.proposal-step-line.done{background:var(--green);}
+.generating-box{display:none;padding:20px;text-align:center;animation:fadeUp .2s ease;}
+.generating-box.on{display:block;}
+
+/* ── Verify panel ── */
+.verify-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:sticky;top:80px;}
+.verify-title{font-size:12px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;}
+.verify-summary{padding:10px 12px;border-radius:var(--radius-sm);margin-bottom:12px;}
+.verify-summary.has-warn{background:var(--amber-bg);border:1px solid #fcd34d;}
+.verify-summary-text{font-size:12px;font-weight:700;color:var(--amber);}
+.verify-item{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #f0f4fb;font-size:12px;}
+.verify-item:last-child{border-bottom:none;}
+.verify-text{flex:1;line-height:1.5;}
+.verify-ok{color:var(--green);}
+.verify-warn{color:var(--amber);}
+.verify-err{color:var(--red);}
+
+/* ── Company page ── */
+.prog-bar{height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;}
+.info-section-header{display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--blue-50);border:1px solid var(--blue-100);border-radius:var(--radius-sm);margin-bottom:16px;cursor:pointer;transition:all .12s;}
+.info-section-header:hover{background:var(--blue-100);}
+.info-section-title{font-size:13px;font-weight:700;flex:1;}
+.info-section-status.done{color:var(--green);font-size:11px;font-weight:600;}
+.info-section-status.partial{color:var(--amber);font-size:11px;font-weight:600;}
+.info-section-status.empty{color:var(--text-3);font-size:11px;font-weight:600;}
+.info-section-body{display:none;padding:20px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:16px;margin-top:-8px;background:var(--surface);}
+.info-section-body.open{display:block;}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:12px;font-weight:600;color:var(--text-2);}
+.cert-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);margin-bottom:8px;}
+.cert-item-name{font-size:13px;font-weight:600;flex:1;}
+.cert-item-date{font-size:11px;color:var(--text-3);}
+.cert-remove{font-size:11px;color:var(--text-3);cursor:pointer;padding:3px 6px;border-radius:4px;}
+.cert-remove:hover{background:var(--red-bg);color:var(--red);}
+
+/* ── Personnel ── */
+.personnel-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;transition:box-shadow .12s;}
+.personnel-card:hover{box-shadow:var(--shadow);}
+.personnel-card-header{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--surface-2);border-bottom:1px solid var(--border);}
+.personnel-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue-500);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;flex-shrink:0;}
+.personnel-name-wrap{flex:1;}
+.personnel-name{font-size:14px;font-weight:700;}
+.personnel-role{font-size:11px;color:var(--text-3);margin-top:2px;}
+.personnel-badges{display:flex;gap:5px;flex-wrap:wrap;}
+.personnel-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;}
+.personnel-badge.pm{background:#dbeafe;color:#1e40af;}
+.personnel-badge.tech{background:#ede9fe;color:#6d28d9;}
+.personnel-badge.cert{background:#dcfce7;color:#166534;}
+.personnel-body{padding:16px 18px;}
+.personnel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.personnel-field{display:flex;flex-direction:column;gap:4px;}
+.personnel-field-label{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;}
+.personnel-field-val{font-size:13px;font-weight:600;color:var(--text-1);}
+.personnel-certs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.personnel-cert-chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;background:#f0fdf4;border:1px solid #86efac;color:#166534;}
+.personnel-cert-chip.national{background:#ede9fe;border-color:#c4b5fd;color:#6d28d9;}
+.personnel-projects{font-size:12px;color:var(--text-2);line-height:1.8;padding:10px 12px;background:var(--surface-2);border-radius:var(--radius-sm);}
+.personnel-card-actions{display:flex;gap:6px;justify-content:flex-end;padding:10px 18px;border-top:1px solid var(--border);background:var(--surface-2);}
+.add-personnel-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;border:2px dashed var(--border-strong);border-radius:var(--radius);background:var(--blue-50);cursor:pointer;font-size:13px;font-weight:600;color:var(--blue-500);font-family:inherit;transition:all .12s;width:100%;}
+.add-personnel-btn:hover{background:var(--blue-100);border-color:var(--blue-400);}
+
+/* ── Personnel modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(12,25,48,0.4);z-index:9999;display:none;align-items:center;justify-content:center;}
+.modal-overlay.on{display:flex;}
+.modal{background:var(--surface);border-radius:var(--radius);width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(20,50,120,0.2);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);}
+.modal-title{font-size:16px;font-weight:700;}
+.modal-close{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-3);font-family:inherit;transition:all .12s;}
+.modal-close:hover{background:var(--red-bg);color:var(--red);border-color:#fecaca;}
+.modal-body{padding:22px;}
+.modal-section-title{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;margin-top:18px;}
+.modal-section-title:first-child{margin-top:0;}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;padding:16px 22px;border-top:1px solid var(--border);}
+.cert-input-row{display:flex;gap:8px;margin-bottom:8px;}
+.cert-input-row input{flex:1;}
+
+/* ── Docs page ── */
+.upload-zone{border:2px dashed var(--border-strong);border-radius:var(--radius);padding:28px 20px;text-align:center;cursor:pointer;background:var(--blue-50);transition:all .15s;}
+.upload-zone:hover{border-color:var(--blue-400);background:var(--blue-100);}
+.ftype{display:inline-block;padding:2px 7px;border-radius:3px;background:var(--blue-100);color:var(--blue-600);font-size:10px;font-weight:700;margin:2px;}
+.doc-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);transition:all .12s;margin-bottom:8px;}
+.doc-row:hover{border-color:var(--blue-400);background:var(--blue-50);}
+.doc-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.doc-ico.patent{background:#e0f2fe;}
+.doc-ico.product{background:#ede9fe;}
+.doc-ico.ref{background:#dcfce7;}
+.doc-tag{margin-left:auto;font-size:11px;font-weight:700;padding:3px 8px;border-radius:3px;flex-shrink:0;}
+.doc-tag.patent{background:#e0f2fe;color:#0369a1;}
+.doc-tag.product{background:#ede9fe;color:#6d28d9;}
+.doc-tag.ref{background:#dcfce7;color:#166534;}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.status-dot.ready{background:var(--green);}
+
+/* ── Notifications ── */
+.notif-dropdown{position:fixed;top:64px;right:20px;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 30px rgba(20,50,120,0.12);z-index:9999;display:none;animation:fadeUp .15s ease;}
+.notif-dropdown.on{display:block;}
+.notif-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.notif-header-title{font-size:13px;font-weight:700;}
+.notif-mark-all{font-size:11px;color:var(--blue-500);cursor:pointer;font-weight:600;}
+.notif-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid #f4f7fc;cursor:pointer;transition:background .1s;}
+.notif-item:hover{background:var(--blue-50);}
+.notif-item.unread{background:#f5f8ff;}
+.notif-item:last-child{border-bottom:none;}
+.notif-ico{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.notif-ico.comment{background:#dbeafe;}
+.notif-ico.alert{background:#fef3c7;}
+.notif-ico.system{background:#dcfce7;}
+.notif-msg{font-size:13px;line-height:1.5;}
+.notif-time{font-size:11px;color:var(--text-3);margin-top:3px;}
+.unread-dot{width:6px;height:6px;border-radius:50%;background:var(--blue-500);flex-shrink:0;margin-top:6px;}
+.overlay{position:fixed;inset:0;background:rgba(12,25,48,0.2);z-index:9998;display:none;}
+.overlay.on{display:block;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="logo-row">
+    <div class="logo-mark">🎯</div>
+    <span class="logo-name">blueWin</span>
+  </div>
+  <nav class="header-nav">
+    <div class="nav-tab active" onclick="go('collect')"><span>📡</span> 공고 자동 수집 <span class="nav-tab-badge amber">3</span></div>
+    <div class="nav-tab" onclick="go('analyze')"><span>🔍</span> 공고 분석</div>
+    <div class="nav-tab" onclick="go('history')"><span>🗂</span> 이력 & 지원서 <span class="nav-tab-badge">7</span></div>
+    <div class="nav-tab" onclick="go('docs')"><span>📁</span> 문서 관리 <span class="nav-tab-badge">14</span></div>
+    <div class="nav-tab" onclick="go('company')"><span>🏢</span> 기업 정보</div>
+  </nav>
+  <div class="header-right">
+    <button class="notif-btn" onclick="toggleNotif(event)">🔔<span class="notif-badge">3</span></button>
+    <div class="header-profile" onclick="closeAll()">
+      <div class="avatar">연</div>
+      <div><div style="font-size:13px;font-weight:600;">연구소 관리자</div><div style="font-size:11px;color:var(--text-3);">Admin</div></div>
+      <span style="font-size:11px;color:var(--text-3);margin-left:2px">▾</span>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+<!-- ══════════════════════════════════════════
+     공고 자동 수집
+══════════════════════════════════════════ -->
+<div id="page-collect" class="page on">
+  <div class="page-header">
+    <div>
+      <div class="page-title">공고 자동 수집</div>
+      <div class="page-sub">나라장터에서 관심 키워드 공고를 자동으로 수집합니다</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">🔑 수집 키워드 및 필터</div>
+        <button class="btn btn-primary" onclick="doCrawl()" style="font-size:12px">▶ 수집</button>
+      </div>
+
+      <!-- 등록된 키워드 -->
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px" id="keywordChips">
+        <span class="kw-chip" style="padding:4px 11px;background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-600);border-radius:20px;font-size:11px;font-weight:600">RPA <span style="cursor:pointer;opacity:.6" onclick="removeKeyword(this)">✕</span></span>
+        <span class="kw-chip" style="padding:4px 11px;background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-600);border-radius:20px;font-size:11px;font-weight:600">AI Agent <span style="cursor:pointer;opacity:.6" onclick="removeKeyword(this)">✕</span></span>
+        <span class="kw-chip" style="padding:4px 11px;background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-600);border-radius:20px;font-size:11px;font-weight:600">로봇 자동화 <span style="cursor:pointer;opacity:.6" onclick="removeKeyword(this)">✕</span></span>
+        <span class="kw-chip" style="padding:4px 11px;background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-600);border-radius:20px;font-size:11px;font-weight:600">업무 자동화 <span style="cursor:pointer;opacity:.6" onclick="removeKeyword(this)">✕</span></span>
+        <span id="kwAddBtn" style="padding:4px 11px;border:1px dashed var(--border);color:var(--text-3);border-radius:20px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px" onclick="showKwInput()">+ 직접 추가</span>
+        <span id="kwInputWrap" style="display:none;align-items:center;gap:6px">
+          <input type="text" id="kwInput" placeholder="키워드 입력" style="width:130px;padding:4px 8px;font-size:12px" onkeydown="if(event.key==='Enter')addKeyword()">
+          <button onclick="addKeyword()" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:20px;border:1px solid var(--blue-400);background:var(--blue-50);color:var(--blue-500);cursor:pointer;font-family:inherit">추가</button>
+          <button onclick="hideKwInput()" style="padding:4px 8px;font-size:11px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--text-3);cursor:pointer;font-family:inherit">취소</button>
+        </span>
+      </div>
+
+      <!-- ★ AI 키워드 추천 바 -->
+      <div class="ai-suggest-bar">
+        <div class="ai-suggest-label">✨ AI 추천</div>
+        <div class="ai-suggest-chips" id="aiSuggestChips">
+          <button class="ai-suggest-chip" onclick="addSuggestKw(this)">+ 지능형 프로세스 자동화</button>
+          <button class="ai-suggest-chip" onclick="addSuggestKw(this)">+ LLM 기반 문서처리</button>
+          <button class="ai-suggest-chip" onclick="addSuggestKw(this)">+ 디지털 트랜스포메이션</button>
+          <button class="ai-suggest-chip" onclick="addSuggestKw(this)">+ 스마트 워크플로우</button>
+          <button class="ai-suggest-chip" onclick="addSuggestKw(this)">+ 행정 자동화</button>
+        </div>
+        <button class="ai-suggest-refresh" id="suggestRefreshBtn" onclick="refreshSuggestions()">🔄 재추천</button>
+      </div>
+      <div style="margin-top:6px;font-size:11px;color:var(--text-3);padding-left:4px">등록된 키워드, 업종, 과거 낙찰 공고를 분석하여 추천합니다</div>
+
+      <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0">
+          <span style="font-size:12px;font-weight:600;color:var(--text-2);white-space:nowrap">최소 예산</span>
+          <select><option>제한 없음</option><option selected>3억 이상</option><option>5억 이상</option><option>10억 이상</option></select>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex:1">
+          <span style="font-size:12px;font-weight:600;color:var(--text-2);white-space:nowrap">발주처</span>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" checked> 중앙정부</label>
+            <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" checked> 공기업</label>
+            <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox"> 지자체</label>
+          </div>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-3)">
+          <span style="color:var(--green);font-weight:700">●</span> 자동 수집 실행 중 <span>· 6시간 주기 · 14분 전 갱신</span>
+        </div>
+      </div>
+    </div>
+    <div id="crawlBar" class="load-bar" style="margin-bottom:16px"></div>
+    <div class="section-label">검토 대기 공고 (3)</div>
+
+    <!-- 공고 카드 1 -->
+    <div class="crawl-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+            <span class="crawl-title">공공기관 행정업무 RPA 도입 사업</span>
+            <span class="pill new">신규</span>
+          </div>
+          <div class="crawl-meta">행정안전부 · 용역 · 15억 · 마감 2025.07.15</div>
+          <div class="crawl-keywords" style="margin-bottom:8px">매칭 키워드: <span>RPA</span>, <span>업무 자동화</span>, <span>AI Agent</span></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;background:#f0fdf4;border:1px solid #86efac;color:#15803d">🟢 소재지 제한 없음</span>
+            <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-600)">단독 수행 가능</span>
+          </div>
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          <div style="font-size:22px;font-weight:800;color:var(--green);font-family:monospace">82%</div>
+          <div style="font-size:10px;color:var(--text-3);margin-bottom:10px">사전 분석 점수</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary" style="font-size:11px;padding:5px 12px" onclick="analyzeFrom('rpa')">분석하기</button>
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px">제외</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 공고 카드 2 -->
+    <div class="crawl-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+            <span class="crawl-title">AI Agent 기반 민원 자동응답 시스템 구축</span>
+            <span class="pill new">신규</span>
+          </div>
+          <div class="crawl-meta">고용노동부 · 용역 · 8.5억 · 마감 2025.07.20</div>
+          <div class="crawl-keywords" style="margin-bottom:8px">매칭 키워드: <span>AI Agent</span>, <span>업무 자동화</span></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;background:#f0fdf4;border:1px solid #86efac;color:#15803d">🟢 소재지 제한 없음</span>
+            <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-600)">단독·주관 가능</span>
+          </div>
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          <div style="font-size:22px;font-weight:800;color:var(--green);font-family:monospace">76%</div>
+          <div style="font-size:10px;color:var(--text-3);margin-bottom:10px">사전 분석 점수</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary" style="font-size:11px;padding:5px 12px" onclick="analyzeFrom('ai')">분석하기</button>
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px">제외</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 공고 카드 3 -->
+    <div class="crawl-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+            <span class="crawl-title">제조현장 로봇 자동화(AX) 전환 지원 사업</span>
+            <span class="pill deadline">마감임박</span>
+          </div>
+          <div class="crawl-meta">한국산업기술진흥원 · 용역 · 6.2억 · 마감 2025.06.25</div>
+          <div class="crawl-keywords" style="margin-bottom:8px">매칭 키워드: <span>로봇 자동화</span>, <span>AX 전환</span></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;background:var(--amber-bg);border:1px solid #fcd34d;color:var(--amber)">🟡 수행지 경기도 (소재지 무관)</span>
+            <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;background:var(--purple-bg);border:1px solid #c4b5fd;color:var(--purple)">컨소시엄 주관 권장</span>
+          </div>
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          <div style="font-size:22px;font-weight:800;color:#d97706;font-family:monospace">63%</div>
+          <div style="font-size:10px;color:var(--text-3);margin-bottom:10px">사전 분석 점수</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary" style="font-size:11px;padding:5px 12px" onclick="analyzeFrom('robot')">분석하기</button>
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px">제외</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     공고 분석
+══════════════════════════════════════════ -->
+<div id="page-analyze" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">공고 분석</div>
+      <div class="page-sub" id="analyzeSubtitle">공고문을 입력하면 적합성, 전략, 리스크를 분석합니다</div>
+    </div>
+    <div class="page-actions" id="analyzeHeaderActions">
+      <button class="btn btn-secondary" onclick="loadSample()">📋 샘플 불러오기</button>
+    </div>
+  </div>
+  <div class="content">
+    <div id="inputSection" style="margin-bottom:14px">
+      <div class="grid-2">
+        <div>
+          <div style="display:flex;gap:0;margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;width:fit-content">
+            <button id="tabText" onclick="switchTab('text')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:var(--blue-500);color:#fff;transition:all .12s">텍스트 입력</button>
+            <button id="tabFile" onclick="switchTab('file')" style="padding:6px 16px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:var(--surface);color:var(--text-3);transition:all .12s">파일 업로드</button>
+          </div>
+          <div id="inputText">
+            <textarea id="bidText" style="min-height:200px" placeholder="입찰 공고문을 붙여넣으세요."></textarea>
+          </div>
+          <div id="inputFile" style="display:none">
+            <div style="border:2px dashed var(--border-strong);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;background:var(--blue-50);min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <div style="font-size:28px;margin-bottom:10px">📎</div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">공고 파일을 드래그하거나 클릭하여 업로드</div>
+              <div><span class="ftype">PDF</span><span class="ftype">HWP</span><span class="ftype">DOCX</span></div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            <button class="btn btn-primary" onclick="runManualAnalysis()">🔍 분석 시작</button>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">분석 설정</div>
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;font-weight:600;color:var(--text-2);white-space:nowrap;min-width:60px">공고 유형</span><select style="flex:1"><option>자동 감지</option><option>용역</option><option>물품</option><option>공사</option></select></div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span style="font-size:12px;font-weight:600;color:var(--text-2);white-space:nowrap;min-width:60px">발주처</span><select style="flex:1"><option>전체</option><option>중앙정부</option><option>공기업</option><option>지자체</option></select></div>
+            <div style="padding:10px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border);font-size:12px">
+              <div style="font-weight:700;color:var(--blue-500);margin-bottom:6px">📚 사용할 지식 베이스</div>
+              <div style="color:var(--text-2);line-height:1.9">✓ 특허 6건 &nbsp; ✓ 제품 5건 &nbsp; ✓ 참조 3건<br><span style="color:var(--text-3)">⏳ 인덱싱 중 1건 제외</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="analyzing-overlay" id="analyzingOverlay">
+      <div style="font-size:36px;margin-bottom:16px">🔍</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px">공고 분석 중...</div>
+      <div style="font-size:13px;color:var(--text-3);margin-bottom:20px" id="analyzingStep">지역·참여형태 판단 → 3단계 AI 파이프라인 → 경쟁사 탐색</div>
+      <div><span class="generating-dot"></span><span class="generating-dot"></span><span class="generating-dot"></span></div>
+    </div>
+
+    <div class="result-box" id="resultSection">
+      <div id="announcementBanner" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:linear-gradient(135deg,var(--blue-50),#f5f0ff);border:1px solid var(--blue-100);border-radius:var(--radius);margin-bottom:20px">
+        <div style="font-size:22px">📋</div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;margin-bottom:3px" id="bannerTitle">공공기관 행정업무 RPA 도입 사업</div>
+          <div style="font-size:12px;color:var(--text-3)" id="bannerMeta">행정안전부 · 15억 · 마감 2025.07.15</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <div style="text-align:center;padding:8px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm)">
+            <div style="font-size:18px;font-weight:800;color:var(--green);font-family:monospace" id="bannerScore">87%</div>
+            <div style="font-size:10px;color:var(--text-3)">기술 적합도</div>
+          </div>
+          <div style="text-align:center;padding:8px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm)">
+            <div style="font-size:18px;font-weight:800;color:var(--amber);font-family:monospace" id="bannerComp">75점</div>
+            <div style="font-size:10px;color:var(--text-3)">경쟁력 점수</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">① 지역 제한 및 참여 형태</div>
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="eligibility-box ok" id="regionBox">
+          <div class="eligibility-title">🗺 지역 제한 판정</div>
+          <div class="eligibility-row"><span>✅</span><span id="regionDetail"><strong>소재지 제한 없음</strong> — 수행 장소만 명시</span></div>
+          <div class="eligibility-row"><span style="opacity:.4">└</span><span id="regionSub" style="color:var(--text-2)">용역 수행지: 서울 (전국 기업 입찰 가능)</span></div>
+          <div class="eligibility-row"><span>✅</span><span>우리 회사 소재지: 서울 강남구 → <strong>입찰 가능</strong></span></div>
+        </div>
+        <div class="eligibility-box ok" id="participationBox">
+          <div class="eligibility-title">🤝 참여 형태 판정</div>
+          <div class="eligibility-row"><span>✅</span><span id="consortiumDetail">컨소시엄 허용 · 단독 수행 가능</span></div>
+          <div class="eligibility-row"><span>✅</span><span id="qualDetail">주관기관 자격 충족 (SW사업자 + 실적 2건)</span></div>
+          <div class="participation-chips" id="participationChips">
+            <span class="participation-chip recommended">⭐ 단독 수행 권장</span>
+            <span class="participation-chip ok">주관기관 가능</span>
+            <span class="participation-chip ok">참여기관 가능</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">② 적합도 분석</div>
+      <div class="card" style="margin-bottom:20px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--border)">
+          <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:10px 12px"><div style="font-size:10px;font-weight:600;color:var(--text-3);margin-bottom:4px">발주처</div><div style="font-size:12px;font-weight:700" id="ri-org">행정안전부</div></div>
+          <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:10px 12px"><div style="font-size:10px;font-weight:600;color:var(--text-3);margin-bottom:4px">예산</div><div style="font-size:12px;font-weight:700" id="ri-budget">15억 원</div></div>
+          <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:10px 12px"><div style="font-size:10px;font-weight:600;color:var(--text-3);margin-bottom:4px">사업 기간</div><div style="font-size:12px;font-weight:700">12개월</div></div>
+          <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:10px 12px"><div style="font-size:10px;font-weight:600;color:var(--text-3);margin-bottom:4px">마감일</div><div style="font-size:12px;font-weight:700;color:var(--amber)" id="ri-deadline">2025.07.15</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-size:15px;font-weight:700;margin-bottom:4px" id="ri-title">공공기관 행정업무 RPA 도입 사업</div>
+            <div style="font-size:11px;color:var(--text-3)">용역 · 자동 파싱 완료</div>
+          </div>
+          <span class="verdict go">진행 — 참여 권고</span>
+        </div>
+        <div class="score-row">
+          <div class="score-box">
+            <div class="score-box-label">기술 적합도</div>
+            <div class="ring-wrap"><svg viewBox="0 0 72 72"><circle class="ring-bg" cx="36" cy="36" r="28"/><circle class="ring-fill green" cx="36" cy="36" r="28" stroke-dasharray="176" stroke-dashoffset="23"/></svg><div class="ring-num green">87%</div></div>
+            <div class="score-sub-text">요구기술 12개 중 10개 보유</div>
+          </div>
+          <div class="score-box">
+            <div class="score-box-label">자격 요건</div>
+            <div class="ring-wrap"><svg viewBox="0 0 72 72"><circle class="ring-bg" cx="36" cy="36" r="28"/><circle class="ring-fill green" cx="36" cy="36" r="28" stroke-dasharray="176" stroke-dashoffset="18"/></svg><div class="ring-num green">90%</div></div>
+            <div class="score-sub-text">필수 자격 4개 중 4개 충족</div>
+          </div>
+          <div class="score-box">
+            <div class="score-box-label">경쟁력</div>
+            <div class="ring-wrap"><svg viewBox="0 0 72 72"><circle class="ring-bg" cx="36" cy="36" r="28"/><circle class="ring-fill amber" cx="36" cy="36" r="28" stroke-dasharray="176" stroke-dashoffset="62"/></svg><div class="ring-num amber">75%</div></div>
+            <div class="score-sub-text">유사 실적 보강 필요</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">경쟁력 항목별 채점</div>
+          <div class="comp-grid">
+            <div class="comp-item"><div class="comp-item-label">핵심 기술 보유</div><div class="comp-item-score" style="color:var(--green)">25</div><div class="comp-item-max">/ 35점</div><div class="comp-item-bar"><div class="comp-item-fill" style="width:71%;background:var(--green)"></div></div><div class="comp-item-note">핵심 기술 직접 매칭 1건.</div></div>
+            <div class="comp-item"><div class="comp-item-label">유사 실적</div><div class="comp-item-score" style="color:#d97706">20</div><div class="comp-item-max">/ 30점</div><div class="comp-item-bar"><div class="comp-item-fill" style="width:67%;background:#d97706"></div></div><div class="comp-item-note">공공 RPA 실적 2건.</div></div>
+            <div class="comp-item"><div class="comp-item-label">인증 차별성</div><div class="comp-item-score" style="color:var(--green)">20</div><div class="comp-item-max">/ 20점</div><div class="comp-item-bar"><div class="comp-item-fill" style="width:100%;background:var(--green)"></div></div><div class="comp-item-note">GS 1등급 + CC인증 동시 보유.</div></div>
+            <div class="comp-item"><div class="comp-item-label">기술 최신성</div><div class="comp-item-score" style="color:#d97706">10</div><div class="comp-item-max">/ 15점</div><div class="comp-item-bar"><div class="comp-item-fill" style="width:67%;background:#d97706"></div></div><div class="comp-item-note">워크시그널 특허 출원 2022년.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">③ 매칭 자산 및 리스크</div>
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <div class="card-title">🔗 매칭된 자산</div>
+          <div class="asset-row"><div class="asset-dot"></div><span class="asset-name">beSRT Studio v2.1</span><span class="asset-badge">핵심</span></div>
+          <div class="asset-row"><div class="asset-dot"></div><span class="asset-name">워크 시그널 탐색 시스템 특허</span><span class="asset-badge">핵심</span></div>
+          <div class="asset-row"><div class="asset-dot"></div><span class="asset-name">blueFit v1.5</span><span class="asset-badge">보완</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚠️ 리스크 플래그</div>
+          <div class="risk-item high"><div>🔴</div><div><div class="risk-title">CC인증 만료 임박</div><div class="risk-desc">CC인증 EAL2 만료일 2025.11.04.</div></div></div>
+          <div class="risk-item mid"><div>⚠️</div><div><div class="risk-title">RPA 구축 유사 실적 부족</div><div class="risk-desc">공공기관 RPA 실적 요구 3건 중 1건 미달.</div></div></div>
+        </div>
+      </div>
+
+      <div class="section-label">④ 낙찰 이력 및 경쟁률</div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="bid-stat-row">
+          <div class="bid-stat-box"><div class="bid-stat-label">평균 낙찰가율</div><div class="bid-stat-val" style="color:var(--blue-500)">89.3%</div></div>
+          <div class="bid-stat-box"><div class="bid-stat-label">평균 참가 기업 수</div><div class="bid-stat-val" style="color:var(--purple)">6.5개사</div></div>
+          <div class="bid-stat-box"><div class="bid-stat-label">반복 낙찰 기업</div><div class="bid-stat-val" style="color:var(--amber);font-size:13px">(주)○○소프트</div></div>
+        </div>
+      </div>
+
+      <div class="section-label">⑤ 경쟁사 자동 분석</div>
+      <div class="competitor-card" style="margin-bottom:20px">
+        <div class="competitor-header">
+          <div class="competitor-rank">1</div>
+          <div class="competitor-name">(주)○○소프트</div>
+          <span class="source-badge kipris">KIPRIS</span><span class="source-badge mas">MAS</span><span class="source-badge bid">낙찰이력</span>
+          <span class="threat-badge high">🔴 위협도 높음</span>
+        </div>
+        <div style="padding:9px 12px;background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--radius-sm);font-size:12px;color:#b91c1c">
+          ⚠️ 동일 발주처 반복 낙찰 기업. 이 공고에 높은 확률로 재참여 예상됩니다.
+        </div>
+      </div>
+
+      <div class="section-label">⑥ 팀 검토</div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:0">👥 담당자 및 코멘트</div>
+        </div>
+        <div class="comment-thread" id="commentThread">
+          <div class="comment-item">
+            <div class="comment-avatar" style="background:var(--blue-500)">김</div>
+            <div class="comment-bubble"><div class="comment-who">김영업 <span class="comment-when">· 2시간 전</span></div>CC인증 유효기간 확인 중입니다.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <input type="text" id="commentInput" placeholder="코멘트를 입력하세요..." style="flex:1" onkeydown="if(event.key==='Enter')sendComment()">
+          <button class="btn btn-primary" style="font-size:12px" onclick="sendComment()">전송</button>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+          <button class="btn btn-secondary" onclick="go('history')">🗂 이력에 저장</button>
+          <button class="btn btn-success" onclick="go('proposal')">✍️ 지원서 작성</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     이력 & 지원서
+══════════════════════════════════════════ -->
+<div id="page-history" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">이력 & 지원서</div>
+      <div class="page-sub" id="historyPageSub">팀 전체 공고 현황 및 검토 상태 관리</div>
+    </div>
+    <div class="page-actions" id="historyPageActions">
+      <input type="text" placeholder="🔍 공고명 검색..." style="width:200px">
+      <select style="width:auto"><option>전체 판정</option><option>진행</option><option>보류</option><option>제외</option></select>
+    </div>
+  </div>
+  <div class="content">
+    <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border);">
+      <button id="subtab-history" onclick="switchSubtab('history')" style="padding:10px 20px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;font-family:inherit;color:var(--blue-500);border-bottom:2px solid var(--blue-500);margin-bottom:-2px">🗂 분석 이력 <span style="background:var(--blue-100);color:var(--blue-500);font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;margin-left:4px">7</span></button>
+      <button id="subtab-proposals" onclick="switchSubtab('proposals')" style="padding:10px 20px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;font-family:inherit;color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-2px">✍️ 지원서 관리 <span style="background:var(--surface-2);color:var(--text-3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;margin-left:4px">3</span></button>
+    </div>
+
+    <div id="subtab-content-history">
+      <div class="filter-row">
+        <button class="filter-btn on" onclick="histFilter(this,'all')">전체 7</button>
+        <button class="filter-btn" onclick="histFilter(this,'go')">진행 3</button>
+        <button class="filter-btn" onclick="histFilter(this,'review')">보류 1</button>
+        <button class="filter-btn" onclick="histFilter(this,'nogo')">제외 3</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>공고명</th><th>발주처</th><th>예산</th><th>적합도</th><th>판정</th><th>참여형태</th><th>담당자</th><th>검토 상태</th><th>분석일</th><th></th></tr></thead>
+          <tbody>
+            <tr data-verdict="go"><td><strong>행정업무 RPA 자동화 플랫폼 구축</strong></td><td style="color:var(--text-2)">행정안전부</td><td style="color:var(--text-2)">12.4억</td><td><span style="color:var(--green);font-weight:700;font-family:monospace">87%</span></td><td><span class="pill go">✓ 진행</span></td><td><span style="font-size:11px;font-weight:600;color:var(--blue-600);background:var(--blue-50);padding:2px 7px;border-radius:4px">단독</span></td><td><div style="display:flex;gap:4px"><div style="width:20px;height:20px;border-radius:50%;background:var(--blue-500);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700">김</div></div></td><td><span class="pill inprogress">검토 중</span></td><td style="color:var(--text-3);font-size:12px">06.12</td><td style="display:flex;gap:4px"><button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" onclick="analyzeFrom('rpa')">보기</button><button class="btn btn-success" style="font-size:11px;padding:4px 10px" onclick="go('proposal')">✍️</button></td></tr>
+            <tr data-verdict="go"><td><strong>AI Agent 기반 민원처리 시스템 구축</strong></td><td style="color:var(--text-2)">고용노동부</td><td style="color:var(--text-2)">8.1억</td><td><span style="color:var(--green);font-weight:700;font-family:monospace">81%</span></td><td><span class="pill go">✓ 진행</span></td><td><span style="font-size:11px;font-weight:600;color:var(--purple);background:var(--purple-bg);padding:2px 7px;border-radius:4px">주관기관</span></td><td><div style="width:20px;height:20px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700">박</div></td><td><span class="pill inprogress">검토 중</span></td><td style="color:var(--text-3);font-size:12px">06.10</td><td><button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" onclick="analyzeFrom('ai')">보기</button></td></tr>
+            <tr data-verdict="review"><td><strong>제조공정 로봇 자동화 솔루션 도입</strong></td><td style="color:var(--text-2)">한국수력원자력</td><td style="color:var(--text-2)">5.6억</td><td><span style="color:#d97706;font-weight:700;font-family:monospace">62%</span></td><td><span class="pill review">△ 보류</span></td><td><span style="font-size:11px;font-weight:600;color:var(--amber);background:var(--amber-bg);padding:2px 7px;border-radius:4px">참여기관</span></td><td><span style="font-size:11px;color:var(--text-3)">미지정</span></td><td><span class="pill pending">대기</span></td><td style="color:var(--text-3);font-size:12px">06.08</td><td><button class="btn btn-secondary" style="font-size:11px;padding:4px 10px">보기</button></td></tr>
+            <tr data-verdict="nogo"><td><strong>스마트 물류 AX 전환 컨설팅</strong></td><td style="color:var(--text-2)">인천항만공사</td><td style="color:var(--text-2)">3.2억</td><td><span style="color:var(--red);font-weight:700;font-family:monospace">34%</span></td><td><span class="pill nogo">✕ 제외</span></td><td>—</td><td><span style="font-size:11px;color:var(--text-3)">미지정</span></td><td><span class="pill pending">대기</span></td><td style="color:var(--text-3);font-size:12px">06.05</td><td><button class="btn btn-secondary" style="font-size:11px;padding:4px 10px">보기</button></td></tr>
+            <tr data-verdict="go"><td><strong>공공기관 업무자동화(RPA) 고도화</strong></td><td style="color:var(--text-2)">국민건강보험공단</td><td style="color:var(--text-2)">6.8억</td><td><span style="color:var(--green);font-weight:700;font-family:monospace">78%</span></td><td><span class="pill go">✓ 진행</span></td><td><span style="font-size:11px;font-weight:600;color:var(--blue-600);background:var(--blue-50);padding:2px 7px;border-radius:4px">단독</span></td><td><div style="width:20px;height:20px;border-radius:50%;background:var(--blue-500);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700">김</div></td><td><span class="pill go" style="background:#dcfce7;color:#166534">완료</span></td><td style="color:var(--text-3);font-size:12px">05.28</td><td><button class="btn btn-secondary" style="font-size:11px;padding:4px 10px">보기</button></td></tr>
+            <tr data-verdict="nogo"><td><strong>항만 물류 자율화 시스템 구축</strong></td><td style="color:var(--text-2)">부산항만공사</td><td style="color:var(--text-2)">9.4억</td><td><span style="color:var(--red);font-weight:700;font-family:monospace">28%</span></td><td><span class="pill nogo">✕ 제외</span></td><td>—</td><td><span style="font-size:11px;color:var(--text-3)">미지정</span></td><td><span class="pill pending">대기</span></td><td style="color:var(--text-3);font-size:12px">05.22</td><td><button class="btn btn-secondary" style="font-size:11px;padding:4px 10px">보기</button></td></tr>
+            <tr data-verdict="nogo"><td><strong>스마트 팩토리 디지털 전환 컨설팅</strong></td><td style="color:var(--text-2)">한국산업기술진흥원</td><td style="color:var(--text-2)">18.0억</td><td><span style="color:var(--red);font-weight:700;font-family:monospace">41%</span></td><td><span class="pill nogo">✕ 제외</span></td><td>—</td><td><span style="font-size:11px;color:var(--text-3)">미지정</span></td><td><span class="pill pending">대기</span></td><td style="color:var(--text-3);font-size:12px">05.15</td><td><button class="btn btn-secondary" style="font-size:11px;padding:4px 10px">보기</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="subtab-content-proposals" style="display:none">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm)"><div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">전체</div><div style="font-size:28px;font-weight:700;font-family:'IBM Plex Mono',monospace">3</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">지원서</div></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm)"><div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">작성 중</div><div style="font-size:28px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--blue-500)">1</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">계속 작성 필요</div></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm)"><div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">검토 완료</div><div style="font-size:28px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--amber)">1</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">제출 대기</div></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm)"><div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">제출 완료</div><div style="font-size:28px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--green)">1</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">제출됨</div></div>
+      </div>
+      <div class="card" style="margin-bottom:14px;border-left:4px solid var(--blue-500)" data-pstatus="writing">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:15px;font-weight:700">행정업무 RPA 자동화 플랫폼 구축</span><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--blue-50);color:var(--blue-500);border:1px solid var(--blue-100)">✏️ 작성 중</span></div>
+            <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">행정안전부 · 15억 · 마감 2025.07.15 · 적합도 <strong style="color:var(--green)">87%</strong></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:4px;flex-shrink:0">
+            <button class="btn btn-primary" style="font-size:11px;padding:5px 12px" onclick="go('proposal')">이어서 작성 →</button>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;font-weight:600;color:var(--text-3)">전체 진행률</span><span style="font-size:11px;font-weight:700;color:var(--blue-500)">60%</span></div><div style="height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden"><div style="width:60%;height:100%;background:var(--blue-500);border-radius:3px"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     문서 관리
+══════════════════════════════════════════ -->
+<div id="page-docs" class="page">
+  <div class="page-header">
+    <div><div class="page-title">문서 관리</div><div class="page-sub">특허 및 제품 명세를 등록하여 AI 지식 베이스를 구성합니다</div></div>
+    <div class="page-actions"><input type="text" placeholder="🔍 검색..." style="width:180px"></div>
+  </div>
+  <div class="content">
+    <div class="grid-2" style="margin-bottom:20px">
+      <div class="upload-zone" id="uploadZone" onclick="doUpload()">
+        <div style="font-size:28px;margin-bottom:8px">📤</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">클릭 또는 드래그하여 업로드</div>
+        <div style="font-size:11px;color:var(--text-3)">RAG 인덱싱이 자동으로 시작됩니다</div>
+        <div style="margin-top:12px"><span class="ftype">PDF</span><span class="ftype">HWP</span><span class="ftype">DOCX</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏷 업로드 설정</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;font-weight:600;color:var(--text-2);min-width:60px">유형</span><select style="flex:1"><option>특허</option><option>제품 명세</option><option>참조 문서</option><option>과거 제안서</option></select></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;font-weight:600;color:var(--text-2);min-width:60px">문서명</span><input type="text" placeholder="자동 인식 또는 직접 입력" style="flex:1"></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;font-weight:600;color:var(--text-2);min-width:60px">태그</span><input type="text" placeholder="AI, 데이터처리, 보안..." style="flex:1"></div>
+      </div>
+    </div>
+    <div class="section-label">등록된 문서 (14)</div>
+    <div class="filter-row">
+      <button class="filter-btn on" onclick="docFilter(this,'all')">전체 14</button>
+      <button class="filter-btn" onclick="docFilter(this,'patent')">특허 6</button>
+      <button class="filter-btn" onclick="docFilter(this,'product')">제품 5</button>
+      <button class="filter-btn" onclick="docFilter(this,'ref')">참조 3</button>
+    </div>
+    <div class="card" style="padding:14px" id="docListWrap">
+      <div class="doc-row" data-dtype="patent"><div class="doc-ico patent">🔬</div><div style="flex:1"><div style="font-size:14px;font-weight:600">워크 시그널 탐색 시스템 및 방법</div><div style="font-size:12px;color:var(--text-3)">2025.06.11 · 3.8MB · 인덱싱 완료</div></div><div class="status-dot ready"></div><span class="doc-tag patent">특허</span><div style="display:flex;gap:4px;margin-left:8px"><button class="btn btn-secondary" style="padding:3px 8px;font-size:11px">👁</button><button class="btn btn-secondary" style="padding:3px 8px;font-size:11px">🗑</button></div></div>
+      <div class="doc-row" data-dtype="product"><div class="doc-ico product">💾</div><div style="flex:1"><div style="font-size:14px;font-weight:600">beSRT Studio v2.1 제품 명세</div><div style="font-size:12px;color:var(--text-3)">2025.06.09 · 2.1MB · 인덱싱 완료</div></div><div class="status-dot ready"></div><span class="doc-tag product">제품</span><div style="display:flex;gap:4px;margin-left:8px"><button class="btn btn-secondary" style="padding:3px 8px;font-size:11px">👁</button><button class="btn btn-secondary" style="padding:3px 8px;font-size:11px">🗑</button></div></div>
+      <div class="doc-row" data-dtype="ref"><div class="doc-ico ref">📋</div><div style="flex:1"><div style="font-size:14px;font-weight:600">과거 수주 사업 목록 2022–2024</div><div style="font-size:12px;color:var(--text-3)">2025.05.20 · 0.9MB · 인덱싱 완료</div></div><div class="status-dot ready"></div><span class="doc-tag ref">참조</span><div style="display:flex;gap:4px;margin-left:8px"><button class="btn btn-secondary" style="padding:3px 8px;font-size:11px">👁</button><button class="btn btn-secondary" style="padding:3px 8px;font-size:11px">🗑</button></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     기업 정보
+══════════════════════════════════════════ -->
+<div id="page-company" class="page">
+  <div class="page-header">
+    <div><div class="page-title">기업 정보</div><div class="page-sub">등록된 기업 정보는 적합도 분석 및 지원서 자동 작성에 활용됩니다</div></div>
+    <div class="page-actions"><button class="btn btn-primary" onclick="saveCompanyInfo()">💾 저장</button></div>
+  </div>
+  <div class="content">
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700">프로필 완성도</div>
+        <div style="font-size:13px;font-weight:800;color:var(--blue-500);font-family:monospace">82%</div>
+      </div>
+      <div class="prog-bar" style="height:8px;margin-bottom:10px"><div class="prog-fill" style="width:82%;background:var(--blue-500)"></div></div>
+      <div style="display:flex;gap:16px;font-size:12px;flex-wrap:wrap">
+        <span style="color:var(--green)">✓ 사업자 정보</span>
+        <span style="color:var(--green)">✓ 보유 인증</span>
+        <span style="color:var(--amber)">△ 수행 실적</span>
+        <span style="color:var(--green)">✓ 인력 정보 (3명)</span>
+        <span style="color:var(--red)">✕ 재무 정보</span>
+      </div>
+    </div>
+
+    <!-- 사업자 기본 정보 -->
+    <div class="info-section-header" onclick="toggleSection('sec-basic')">
+      <span style="font-size:18px">🏢</span><span class="info-section-title">사업자 기본 정보</span><span class="info-section-status done">완료</span><span>▾</span>
+    </div>
+    <div class="info-section-body open" id="sec-basic">
+      <div class="form-grid-2">
+        <div class="form-group"><label>회사명</label><input type="text" value="(주)블루소프트"></div>
+        <div class="form-group"><label>소재지</label><input type="text" value="서울특별시 강남구 테헤란로 123"></div>
+        <div class="form-group"><label>업종</label><select><option selected>소프트웨어 개발 및 공급</option></select></div>
+        <div class="form-group"><label>기업 규모</label><select><option selected>중소기업</option></select></div>
+      </div>
+      <div class="form-group"><label>회사 소개</label><textarea style="min-height:80px">(주)블루소프트는 2010년 설립된 RPA 및 AI 기반 업무자동화 전문 기업입니다.</textarea></div>
+    </div>
+
+    <!-- 보유 인증 -->
+    <div class="info-section-header" onclick="toggleSection('sec-cert')">
+      <span style="font-size:18px">🏅</span><span class="info-section-title">보유 인증 및 면허</span><span class="info-section-status done">완료 · 5건</span><span>▾</span>
+    </div>
+    <div class="info-section-body" id="sec-cert">
+      <div class="cert-item"><span style="font-size:16px">📜</span><div style="flex:1"><div class="cert-item-name">GS인증 1등급 (beSRT Studio v2.1)</div><div class="cert-item-date">발급 2024.03.22 · 만료 2026.03.21</div></div><span class="cert-remove">🗑</span></div>
+      <div class="cert-item"><span style="font-size:16px">📜</span><div style="flex:1"><div class="cert-item-name">CC인증 EAL2 (beSRT Studio v2.1)</div><div class="cert-item-date">발급 2023.11.05 · 만료 2025.11.04 ⚠️</div></div><span class="cert-remove">🗑</span></div>
+      <div class="cert-item"><span style="font-size:16px">📜</span><div style="flex:1"><div class="cert-item-name">벤처기업 확인서</div><div class="cert-item-date">발급 2024.06.01 · 만료 2026.05.31</div></div><span class="cert-remove">🗑</span></div>
+    </div>
+
+    <!-- ★ 인력 정보 (신규) -->
+    <div class="info-section-header" onclick="toggleSection('sec-personnel')">
+      <span style="font-size:18px">👤</span>
+      <span class="info-section-title">인력 정보</span>
+      <span style="font-size:11px;color:var(--text-3);font-weight:500;margin-right:8px">제안서 전문성 어필에 활용됩니다</span>
+      <span class="info-section-status done">등록 3명</span>
+      <span>▾</span>
+    </div>
+    <div class="info-section-body open" id="sec-personnel">
+
+      <!-- 안내 배너 -->
+      <div style="display:flex;gap:10px;align-items:flex-start;padding:11px 14px;background:linear-gradient(135deg,var(--blue-50),#f5f0ff);border:1px solid var(--blue-100);border-radius:var(--radius-sm);margin-bottom:16px;font-size:12px;color:var(--text-2)">
+        <span style="font-size:16px">💡</span>
+        <div><strong>인력 정보 활용 방식:</strong> 등록된 인력의 기술사/PMP 등 자격증, 유사 프로젝트 수행 이력, 투입 역할은 기술평가 배점 항목에 자동으로 매핑됩니다. PM과 핵심 기술인력은 반드시 등록하세요.</div>
+      </div>
+
+      <!-- 인력 요약 통계 -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;margin-bottom:6px">전체 인원</div>
+          <div style="font-size:22px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:var(--text-1)" id="personnelCount">3</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;margin-bottom:6px">PM 등록</div>
+          <div style="font-size:22px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:var(--blue-500)">1</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;margin-bottom:6px">국가기술자격</div>
+          <div style="font-size:22px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:var(--purple)">4</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;margin-bottom:6px">평균 경력</div>
+          <div style="font-size:22px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:var(--green)">11년</div>
+        </div>
+      </div>
+
+      <!-- 인력 카드 목록 -->
+      <div id="personnelList">
+
+        <!-- 인력 1: PM -->
+        <div class="personnel-card">
+          <div class="personnel-card-header">
+            <div class="personnel-avatar">김</div>
+            <div class="personnel-name-wrap">
+              <div class="personnel-name">김철수</div>
+              <div class="personnel-role">프로젝트 관리 · 서울 본사</div>
+            </div>
+            <div class="personnel-badges">
+              <span class="personnel-badge pm">PM</span>
+              <span class="personnel-badge cert">PMP</span>
+              <span class="personnel-badge cert">정보관리기술사</span>
+            </div>
+          </div>
+          <div class="personnel-body">
+            <div class="personnel-grid">
+              <div class="personnel-field">
+                <div class="personnel-field-label">직급 / 직책</div>
+                <div class="personnel-field-val">수석연구원 / PM</div>
+              </div>
+              <div class="personnel-field">
+                <div class="personnel-field-label">전문 분야</div>
+                <div class="personnel-field-val">RPA · 공공IT · 프로젝트 관리</div>
+              </div>
+              <div class="personnel-field">
+                <div class="personnel-field-label">총 경력</div>
+                <div class="personnel-field-val">15년 (공공 SW 8년)</div>
+              </div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">보유 자격증</div>
+            <div class="personnel-certs">
+              <span class="personnel-cert-chip national">정보관리기술사</span>
+              <span class="personnel-cert-chip national">PMP</span>
+              <span class="personnel-cert-chip">정보처리기사</span>
+              <span class="personnel-cert-chip">SW사업 대가 기준 이해 과정 수료</span>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;margin-top:12px">주요 수행 프로젝트</div>
+            <div class="personnel-projects">
+              • 행정안전부 업무자동화 구축 PM (2024, 12.4억) — 온타임 납품, 고객 만족도 94점<br>
+              • 국민건강보험공단 RPA 자동화 PM (2023, 6.8억) — 18개 업무 자동화 완료<br>
+              • 고용노동부 AI 문서처리 시스템 PM (2022, 4.2억)
+            </div>
+          </div>
+          <div class="personnel-card-actions">
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="openPersonnelModal('edit',0)">✏️ 편집</button>
+            <button class="btn btn-danger" style="font-size:11px;padding:5px 10px">🗑 삭제</button>
+          </div>
+        </div>
+
+        <!-- 인력 2: 기술 리더 -->
+        <div class="personnel-card">
+          <div class="personnel-card-header">
+            <div class="personnel-avatar" style="background:#7c3aed">이</div>
+            <div class="personnel-name-wrap">
+              <div class="personnel-name">이민준</div>
+              <div class="personnel-role">RPA 개발 · 서울 본사</div>
+            </div>
+            <div class="personnel-badges">
+              <span class="personnel-badge tech">핵심기술</span>
+              <span class="personnel-badge cert">정보처리기사</span>
+            </div>
+          </div>
+          <div class="personnel-body">
+            <div class="personnel-grid">
+              <div class="personnel-field">
+                <div class="personnel-field-label">직급 / 직책</div>
+                <div class="personnel-field-val">선임연구원 / 기술 리더</div>
+              </div>
+              <div class="personnel-field">
+                <div class="personnel-field-label">전문 분야</div>
+                <div class="personnel-field-val">RPA 개발 · AI Agent · Python</div>
+              </div>
+              <div class="personnel-field">
+                <div class="personnel-field-label">총 경력</div>
+                <div class="personnel-field-val">9년 (RPA 전문 6년)</div>
+              </div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">보유 자격증</div>
+            <div class="personnel-certs">
+              <span class="personnel-cert-chip">정보처리기사</span>
+              <span class="personnel-cert-chip">AWS Solutions Architect</span>
+              <span class="personnel-cert-chip">UiPath RPA Developer Advanced</span>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;margin-top:12px">주요 수행 프로젝트</div>
+            <div class="personnel-projects">
+              • beSRT Studio v2.1 핵심 엔진 개발 (자체 R&D)<br>
+              • 워크 시그널 탐색 시스템 특허 공동 발명자<br>
+              • 행정안전부 RPA 시나리오 설계 및 개발 (2024, 35개 시나리오)
+            </div>
+          </div>
+          <div class="personnel-card-actions">
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="openPersonnelModal('edit',1)">✏️ 편집</button>
+            <button class="btn btn-danger" style="font-size:11px;padding:5px 10px">🗑 삭제</button>
+          </div>
+        </div>
+
+        <!-- 인력 3: 보안/인프라 -->
+        <div class="personnel-card">
+          <div class="personnel-card-header">
+            <div class="personnel-avatar" style="background:#059669">박</div>
+            <div class="personnel-name-wrap">
+              <div class="personnel-name">박지영</div>
+              <div class="personnel-role">보안 · 인프라 · 서울 본사</div>
+            </div>
+            <div class="personnel-badges">
+              <span class="personnel-badge tech">핵심기술</span>
+              <span class="personnel-badge cert">정보보안기사</span>
+            </div>
+          </div>
+          <div class="personnel-body">
+            <div class="personnel-grid">
+              <div class="personnel-field">
+                <div class="personnel-field-label">직급 / 직책</div>
+                <div class="personnel-field-val">선임연구원 / 보안 담당</div>
+              </div>
+              <div class="personnel-field">
+                <div class="personnel-field-label">전문 분야</div>
+                <div class="personnel-field-val">공공 보안 · CC인증 · 클라우드</div>
+              </div>
+              <div class="personnel-field">
+                <div class="personnel-field-label">총 경력</div>
+                <div class="personnel-field-val">8년 (공공 보안 5년)</div>
+              </div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">보유 자격증</div>
+            <div class="personnel-certs">
+              <span class="personnel-cert-chip national">정보보안기사</span>
+              <span class="personnel-cert-chip">CISSP</span>
+              <span class="personnel-cert-chip">클라우드 보안 전문가 (CSP)</span>
+              <span class="personnel-cert-chip">정보처리기사</span>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;margin-top:12px">주요 수행 프로젝트</div>
+            <div class="personnel-projects">
+              • beSRT Studio v2.1 CC인증 EAL2 획득 주관<br>
+              • GS인증 1등급 심사 보안 항목 담당<br>
+              • 행정안전부 RPA 플랫폼 보안 아키텍처 설계 (2024)
+            </div>
+          </div>
+          <div class="personnel-card-actions">
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="openPersonnelModal('edit',2)">✏️ 편집</button>
+            <button class="btn btn-danger" style="font-size:11px;padding:5px 10px">🗑 삭제</button>
+          </div>
+        </div>
+
+      </div><!-- /personnelList -->
+
+      <button class="add-personnel-btn" onclick="openPersonnelModal('add')">
+        <span style="font-size:18px">+</span> 인력 추가
+      </button>
+    </div>
+    <!-- /sec-personnel -->
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     지원서 작성
+══════════════════════════════════════════ -->
+<div id="page-proposal" class="page">
+  <div class="page-header">
+    <div><div class="page-title">지원서 작성</div><div class="page-sub">분석 결과와 기업 정보를 기반으로 지원서 초안을 자동 생성합니다</div></div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" onclick="go('analyze')">← 분석으로 돌아가기</button>
+      <button class="btn btn-secondary">📥 DOCX 다운로드</button>
+      <button class="btn btn-primary">✅ 최종 저장</button>
+    </div>
+  </div>
+  <div class="content">
+    <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:linear-gradient(135deg,var(--blue-50),#f5f0ff);border:1px solid var(--blue-100);border-radius:var(--radius);margin-bottom:20px">
+      <div style="font-size:22px">🎯</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;margin-bottom:3px" id="proposalBannerTitle">공공기관 행정업무 RPA 도입 사업 · 행정안전부</div>
+        <div style="font-size:12px;color:var(--text-3)">15억 원 · 마감 2025.07.15 · 적합도 <strong style="color:var(--green)">87%</strong></div>
+      </div>
+    </div>
+    <div class="proposal-step-bar">
+      <div class="proposal-step done"><div class="proposal-step-dot">✓</div><span>공고 분석</span></div>
+      <div class="proposal-step-line done"></div>
+      <div class="proposal-step active"><div class="proposal-step-dot">2</div><span>지원서 작성</span></div>
+      <div class="proposal-step-line"></div>
+      <div class="proposal-step"><div class="proposal-step-dot">3</div><span>검토 및 완료</span></div>
+    </div>
+    <div class="generating-box on" id="generatingBox">
+      <div style="font-size:28px;margin-bottom:12px">✨</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">지원서 초안 생성 중</div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:16px">배점표 파싱 → 섹션별 비중 조정 → 항목별 초안 작성</div>
+      <div><span class="generating-dot"></span><span class="generating-dot"></span><span class="generating-dot"></span></div>
+    </div>
+    <div id="proposalBody" style="display:none">
+      <div class="proposal-layout">
+        <div>
+          <div class="proposal-section">
+            <div class="proposal-section-header"><div class="proposal-section-num">1</div><div class="proposal-section-title">회사 소개</div><span class="proposal-section-badge ai">AI 생성</span><button class="btn btn-secondary" style="font-size:10px;padding:3px 8px;margin-left:auto">🔄 재생성</button></div>
+            <div class="proposal-section-body"><div class="proposal-context-bar"><span>📌</span> <strong>참조 데이터:</strong> 기업 기본정보 · 회사 소개</div><textarea class="proposal-textarea">(주)블루소프트는 2010년 설립된 RPA 및 AI 기반 업무자동화 전문 기업으로, GS인증 1등급 및 CC인증을 보유한 검증된 솔루션 공급사입니다.</textarea></div>
+          </div>
+          <div class="proposal-section">
+            <div class="proposal-section-header"><div class="proposal-section-num">2</div><div class="proposal-section-title">기술 역량 및 보유 기술</div><span class="proposal-section-badge ai">AI 생성</span><button class="btn btn-secondary" style="font-size:10px;padding:3px 8px;margin-left:auto">🔄 재생성</button></div>
+            <div class="proposal-section-body"><div class="proposal-context-bar"><span>📌</span> <strong>참조 데이터:</strong> beSRT Studio v2.1 · 워크 시그널 탐색 특허</div><textarea class="proposal-textarea" style="min-height:150px">■ 핵심 솔루션: beSRT Studio v2.1 (GS인증 1등급)
+■ 차별화 기술: 워크 시그널 탐색 특허 (10-2022-0087432) — 반복 행위 패턴 자동 탐지, 분석 시간 80% 단축.</textarea></div>
+          </div>
+          <div class="proposal-section">
+            <div class="proposal-section-header"><div class="proposal-section-num">3</div><div class="proposal-section-title">투입 인력 및 전문성</div><span class="proposal-section-badge ai">AI 생성</span><button class="btn btn-secondary" style="font-size:10px;padding:3px 8px;margin-left:auto">🔄 재생성</button></div>
+            <div class="proposal-section-body">
+              <div class="proposal-context-bar"><span>📌</span> <strong>참조 데이터:</strong> 인력 정보 3명 (PM·핵심기술 2명)</div>
+              <textarea class="proposal-textarea" style="min-height:160px">■ PM: 김철수 (정보관리기술사·PMP, 경력 15년)
+  - 공공 SW 8년, 행정안전부 업무자동화 구축 PM 수행 (2024)
+
+■ 핵심 기술 인력: 이민준 (경력 9년, RPA 전문)
+  - UiPath Advanced, AWS SA 보유, 특허 공동 발명자
+
+■ 보안 담당: 박지영 (정보보안기사·CISSP, 경력 8년)
+  - CC인증 획득 주관, GS인증 보안 항목 담당</textarea>
+            </div>
+          </div>
+          <div class="proposal-section">
+            <div class="proposal-section-header"><div class="proposal-section-num">4</div><div class="proposal-section-title">유사 수행 실적</div><span class="proposal-section-badge ai">AI 생성</span><button class="btn btn-secondary" style="font-size:10px;padding:3px 8px;margin-left:auto">🔄 재생성</button></div>
+            <div class="proposal-section-body"><div class="proposal-context-bar"><span>📌</span> <strong>참조 데이터:</strong> 수행 실적 3건</div><div style="margin-bottom:10px;padding:8px 12px;background:var(--amber-bg);border:1px solid #fcd34d;border-radius:var(--radius-sm);font-size:12px;color:var(--amber)">⚠️ 공공기관 RPA 실적 2건. 추가 실적 등록 시 경쟁력 강화됩니다.</div><textarea class="proposal-textarea">■ 국민건강보험공단 RPA 자동화 (2023.04–2024.01, 6.8억)
+■ 고용노동부 AI 문서 자동 분류 시스템 (2022.09–2023.03, 4.2억)</textarea></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px">
+            <button class="btn btn-secondary">📄 미리보기</button>
+            <button class="btn btn-primary">✅ 검토 완료 — 이력 저장</button>
+          </div>
+        </div>
+        <div class="verify-panel">
+          <div class="verify-title">📋 제출 전 검증</div>
+          <div class="verify-summary has-warn"><div class="verify-summary-text">⚠️ 확인 필요 항목 2건</div></div>
+          <div class="verify-item"><div>✅</div><div class="verify-text verify-ok">필수 요구사항 12개 중 <strong>11개</strong> 언급</div></div>
+          <div class="verify-item"><div>❌</div><div class="verify-text verify-err"><strong>누락:</strong> "재해복구 계획 수립 방안" 미언급</div></div>
+          <div class="verify-item"><div>⚠️</div><div class="verify-text verify-warn"><strong>CC인증</strong> 2025.11.04 만료 임박</div></div>
+          <div class="verify-item"><div>✅</div><div class="verify-text verify-ok">투입 인력 PM + 기술인력 2명 등록</div></div>
+          <div class="verify-item"><div>✅</div><div class="verify-text verify-ok">국가기술자격 보유자 3명 확인</div></div>
+          <div style="margin-top:12px"><button class="btn btn-primary" style="width:100%;justify-content:center;font-size:12px">🔄 전체 재검증</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- ══════════════════════════════════════════
+     인력 등록/편집 모달
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="personnelModal" onclick="closePersonnelModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">인력 등록</div>
+      <button class="modal-close" onclick="document.getElementById('personnelModal').classList.remove('on')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 기본 정보 -->
+      <div class="modal-section-title">기본 정보</div>
+      <div class="form-grid-2">
+        <div class="form-group"><label>이름 *</label><input type="text" id="mf-name" placeholder="홍길동"></div>
+        <div class="form-group"><label>직급 *</label><select id="mf-rank"><option>연구원</option><option>선임연구원</option><option>수석연구원</option><option>책임연구원</option><option>팀장</option><option>부장</option><option>이사</option></select></div>
+        <div class="form-group"><label>직책 / 역할 *</label><select id="mf-role"><option value="pm">PM (프로젝트 관리자)</option><option value="tech">핵심 기술 인력</option><option value="sec">보안 / 인프라</option><option value="design">UI/UX 설계</option><option value="qa">품질 관리 (QA)</option><option value="biz">사업 기획</option><option value="other">기타</option></select></div>
+        <div class="form-group"><label>총 경력 (년) *</label><input type="text" id="mf-exp" placeholder="예: 10년 (공공 SW 5년)"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px"><label>전문 분야 (쉼표로 구분)</label><input type="text" id="mf-domain" placeholder="예: RPA, AI Agent, Python, 공공 IT"></div>
+
+      <!-- 자격증 / 학력 -->
+      <div class="modal-section-title">자격증 및 학력</div>
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:10px">국가기술자격, 국제자격, 학위를 모두 입력하세요. 기술평가 배점 항목에 자동 매핑됩니다.</div>
+      <div id="certInputList">
+        <div class="cert-input-row"><input type="text" placeholder="예: 정보관리기술사 (국가기술자격)"><button onclick="removeCertRow(this)" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;cursor:pointer;font-family:inherit;font-size:12px;color:var(--text-3)">✕</button></div>
+        <div class="cert-input-row"><input type="text" placeholder="예: PMP (국제자격)"><button onclick="removeCertRow(this)" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;cursor:pointer;font-family:inherit;font-size:12px;color:var(--text-3)">✕</button></div>
+      </div>
+      <button onclick="addCertRow()" style="margin-top:6px;padding:5px 12px;border:1px dashed var(--border);border-radius:var(--radius-sm);background:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-3);font-family:inherit">+ 자격증 추가</button>
+
+      <!-- 주요 프로젝트 실적 -->
+      <div class="modal-section-title">주요 수행 프로젝트 실적</div>
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:8px">발주처, 사업명, 계약금액, 수행 역할을 포함하면 제안서 자동 작성 정확도가 높아집니다.</div>
+      <textarea id="mf-projects" style="min-height:110px" placeholder="예)
+• 행정안전부 업무자동화 플랫폼 구축 PM (2024, 12.4억) — 온타임 납품
+• 국민건강보험공단 RPA 자동화 기술 리더 (2023, 6.8억) — 시나리오 18개 개발"></textarea>
+
+      <!-- 특이사항 / 논문·특허 -->
+      <div class="modal-section-title">특이사항 (선택)</div>
+      <textarea id="mf-notes" style="min-height:70px" placeholder="예: 특허 공동 발명자 (10-2022-0087432), SCI 논문 2편, 발표 경력 등"></textarea>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('personnelModal').classList.remove('on')">취소</button>
+      <button class="btn btn-primary" onclick="savePersonnel()">💾 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 알림 -->
+<div class="notif-dropdown" id="notifDropdown">
+  <div class="notif-header"><span class="notif-header-title">알림 <span style="color:var(--red);font-size:11px">● 3</span></span><span class="notif-mark-all" onclick="markAllRead()">모두 읽음</span></div>
+  <div class="notif-item unread"><div class="notif-ico alert">⚠️</div><div style="flex:1"><div class="notif-msg"><strong>CC인증</strong> 만료 4개월 전입니다.</div><div class="notif-time">30분 전</div></div><div class="unread-dot"></div></div>
+  <div class="notif-item unread"><div class="notif-ico comment">💬</div><div style="flex:1"><div class="notif-msg"><strong>이기술</strong>님이 코멘트를 남겼습니다.</div><div class="notif-time">1시간 전</div></div><div class="unread-dot"></div></div>
+  <div class="notif-item unread"><div class="notif-ico system">📡</div><div style="flex:1"><div class="notif-msg">새로운 공고 <strong>3건</strong>이 수집되었습니다.</div><div class="notif-time">6시간 전</div></div><div class="unread-dot"></div></div>
+</div>
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+<script>
+// ── 공고 데이터 ──
+const BIDS = {
+  rpa: { title:'공공기관 행정업무 RPA 도입 사업', org:'행정안전부', budget:'15억 원', deadline:'2025.07.15', score:'87%', comp:'75점', region:'<strong>소재지 제한 없음</strong> — 수행 장소만 명시', regionSub:'용역 수행지: 서울 (전국 기업 입찰 가능)', consortiumDetail:'컨소시엄 허용 · 단독 수행 가능', qualDetail:'주관기관 자격 충족 (SW사업자 + 실적 2건)', proposalTitle:'공공기관 행정업무 RPA 도입 사업 · 행정안전부', text:'사업명: 공공기관 행정업무 RPA 도입 사업' },
+  ai:  { title:'AI Agent 기반 민원 자동응답 시스템 구축', org:'고용노동부', budget:'8.5억 원', deadline:'2025.07.20', score:'76%', comp:'68점', region:'<strong>소재지 제한 없음</strong>', regionSub:'수행지: 세종 (전국 기업 입찰 가능)', consortiumDetail:'컨소시엄 허용 · 주관기관 가능', qualDetail:'SW사업자 등록 + 유사 실적 1건 이상', proposalTitle:'AI Agent 민원 자동응답 시스템 구축 · 고용노동부', text:'사업명: AI Agent 기반 민원 자동응답 시스템 구축' },
+  robot:{ title:'제조현장 로봇 자동화(AX) 전환 지원 사업', org:'한국산업기술진흥원', budget:'6.2억 원', deadline:'2025.06.25', score:'63%', comp:'55점', region:'수행지 경기도 명시 (소재지 제한 없음)', regionSub:'본사 소재지 무관하게 전국 기업 입찰 가능', consortiumDetail:'컨소시엄 허용 · 주관기관 자격 요건 높음', qualDetail:'제조 자동화 실적 3건 이상 필요 → 일부 미충족', proposalTitle:'제조현장 로봇 자동화(AX) 전환 지원 사업 · 한국산업기술진흥원', text:'사업명: 제조현장 로봇 자동화 전환' }
+};
+let currentBid = 'rpa';
+
+// ── 키워드 관리 ──
+function removeKeyword(el) { el.parentElement.remove(); }
+function showKwInput() {
+  document.getElementById('kwAddBtn').style.display = 'none';
+  document.getElementById('kwInputWrap').style.display = 'inline-flex';
+  document.getElementById('kwInput').focus();
+}
+function hideKwInput() {
+  document.getElementById('kwAddBtn').style.display = 'inline-flex';
+  document.getElementById('kwInputWrap').style.display = 'none';
+  document.getElementById('kwInput').value = '';
+}
+function addKeyword() {
+  const input = document.getElementById('kwInput');
+  const val = input.value.trim();
+  if (!val) return;
+  const chips = document.getElementById('keywordChips');
+  const chip = document.createElement('span');
+  chip.className = 'kw-chip';
+  chip.style.cssText = 'padding:4px 11px;background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-600);border-radius:20px;font-size:11px;font-weight:600';
+  chip.innerHTML = val + ' <span style="cursor:pointer;opacity:.6" onclick="removeKeyword(this)">✕</span>';
+  chips.insertBefore(chip, document.getElementById('kwAddBtn'));
+  hideKwInput();
+}
+
+// ── AI 키워드 추천 ──
+const SUGGEST_POOLS = [
+  ['+ 지능형 프로세스 자동화','+ LLM 기반 문서처리','+ 디지털 트랜스포메이션','+ 스마트 워크플로우','+ 행정 자동화'],
+  ['+ 공공 클라우드 전환','+ 데이터 파이프라인','+ NLP 기반 챗봇','+ 레거시 시스템 현대화','+ 프로세스 마이닝'],
+  ['+ 생성형 AI 도입','+ OCR 문서 자동화','+ MLOps','+ 지식 관리 시스템','+ 로우코드 자동화'],
+];
+let suggestPoolIdx = 0;
+function refreshSuggestions() {
+  const btn = document.getElementById('suggestRefreshBtn');
+  btn.innerHTML = '<span class="ai-suggest-spin">🔄</span> 분석 중';
+  btn.disabled = true;
+  setTimeout(() => {
+    suggestPoolIdx = (suggestPoolIdx + 1) % SUGGEST_POOLS.length;
+    const pool = SUGGEST_POOLS[suggestPoolIdx];
+    const container = document.getElementById('aiSuggestChips');
+    container.innerHTML = '';
+    pool.forEach(kw => {
+      const b = document.createElement('button');
+      b.className = 'ai-suggest-chip';
+      b.textContent = kw;
+      b.onclick = function(){ addSuggestKw(this); };
+      container.appendChild(b);
+    });
+    btn.innerHTML = '🔄 재추천';
+    btn.disabled = false;
+  }, 900);
+}
+function addSuggestKw(btn) {
+  if (btn.classList.contains('added')) return;
+  const kwText = btn.textContent.replace(/^\+\s*/, '');
+  const chips = document.getElementById('keywordChips');
+  const chip = document.createElement('span');
+  chip.className = 'kw-chip';
+  chip.style.cssText = 'padding:4px 11px;background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-600);border-radius:20px;font-size:11px;font-weight:600';
+  chip.innerHTML = kwText + ' <span style="cursor:pointer;opacity:.6" onclick="removeKeyword(this)">✕</span>';
+  chips.insertBefore(chip, document.getElementById('kwAddBtn'));
+  btn.classList.add('added');
+  btn.textContent = '✓ ' + kwText;
+}
+
+// ── 인력 모달 ──
+function openPersonnelModal(mode, idx) {
+  document.getElementById('modalTitle').textContent = mode === 'add' ? '인력 등록' : '인력 정보 편집';
+  document.getElementById('personnelModal').classList.add('on');
+}
+function closePersonnelModal(e) {
+  if (e.target === document.getElementById('personnelModal')) document.getElementById('personnelModal').classList.remove('on');
+}
+function addCertRow() {
+  const list = document.getElementById('certInputList');
+  const row = document.createElement('div');
+  row.className = 'cert-input-row';
+  row.innerHTML = '<input type="text" placeholder="자격증 또는 학위"><button onclick="removeCertRow(this)" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;cursor:pointer;font-family:inherit;font-size:12px;color:var(--text-3)">✕</button>';
+  list.appendChild(row);
+}
+function removeCertRow(btn) { btn.parentElement.remove(); }
+function savePersonnel() {
+  const name = document.getElementById('mf-name').value.trim();
+  if (!name) { document.getElementById('mf-name').style.borderColor = 'var(--red)'; return; }
+  document.getElementById('personnelModal').classList.remove('on');
+  // 저장 확인 토스트 (간단)
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 18px;background:var(--green);color:#fff;border-radius:var(--radius-sm);font-size:13px;font-weight:600;z-index:99999;animation:fadeUp .2s ease';
+  t.textContent = '✓ ' + name + ' 정보가 저장되었습니다';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// ── 공고 분석 ──
+function analyzeFrom(bidKey) {
+  currentBid = bidKey;
+  const bid = BIDS[bidKey];
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-analyze').classList.add('on');
+  document.querySelectorAll('.nav-tab')[1].classList.add('active');
+  window.scrollTo(0, 0);
+  document.getElementById('inputSection').style.display = 'none';
+  document.getElementById('analyzeHeaderActions').innerHTML = '<button class="btn btn-secondary" onclick="showInputSection()">← 직접 입력으로</button>';
+  document.getElementById('analyzeSubtitle').textContent = bid.title + ' 분석 중';
+  document.getElementById('bidText').value = bid.text;
+  document.getElementById('resultSection').classList.remove('on');
+  const overlay = document.getElementById('analyzingOverlay');
+  overlay.classList.add('on');
+  const steps = ['지역 제한 및 참여 형태 판단 중...','3단계 AI 파이프라인 실행 중...','낙찰 이력 조회 중...','경쟁사 자동 탐색 중...','분석 완료!'];
+  let si = 0;
+  const stepEl = document.getElementById('analyzingStep');
+  const t = setInterval(() => { si++; if (si < steps.length) stepEl.textContent = steps[si]; else clearInterval(t); }, 500);
+  setTimeout(() => { overlay.classList.remove('on'); fillResult(bid); }, 2500);
+}
+function runManualAnalysis() {
+  const txt = document.getElementById('bidText').value.trim();
+  if (!txt) { document.getElementById('bidText').style.borderColor = 'var(--red)'; setTimeout(() => document.getElementById('bidText').style.borderColor = '', 1500); return; }
+  currentBid = 'rpa';
+  document.getElementById('resultSection').classList.remove('on');
+  document.getElementById('inputSection').style.display = 'none';
+  document.getElementById('analyzeSubtitle').textContent = '공고 분석 중...';
+  document.getElementById('analyzeHeaderActions').innerHTML = '<button class="btn btn-secondary" onclick="showInputSection()">← 다시 입력</button>';
+  const overlay = document.getElementById('analyzingOverlay');
+  overlay.classList.add('on');
+  const steps = ['지역 제한 및 참여 형태 판단 중...','3단계 AI 파이프라인 실행 중...','낙찰 이력 조회 중...','경쟁사 자동 탐색 중...','분석 완료!'];
+  let si = 0;
+  const stepEl = document.getElementById('analyzingStep');
+  const t = setInterval(() => { si++; if (si < steps.length) stepEl.textContent = steps[si]; else clearInterval(t); }, 500);
+  setTimeout(() => { overlay.classList.remove('on'); fillResult(BIDS['rpa']); }, 2500);
+}
+function fillResult(bid) {
+  document.getElementById('bannerTitle').textContent = bid.title;
+  document.getElementById('bannerMeta').textContent = bid.org + ' · ' + bid.budget + ' · 마감 ' + bid.deadline;
+  document.getElementById('bannerScore').textContent = bid.score;
+  document.getElementById('bannerComp').textContent = bid.comp;
+  document.getElementById('ri-org').textContent = bid.org;
+  document.getElementById('ri-budget').textContent = bid.budget;
+  document.getElementById('ri-deadline').textContent = bid.deadline;
+  document.getElementById('ri-title').textContent = bid.title;
+  document.getElementById('regionDetail').innerHTML = bid.region;
+  document.getElementById('regionSub').textContent = bid.regionSub;
+  document.getElementById('consortiumDetail').textContent = bid.consortiumDetail;
+  document.getElementById('qualDetail').textContent = bid.qualDetail;
+  document.getElementById('analyzeSubtitle').textContent = bid.title;
+  document.getElementById('resultSection').classList.add('on');
+  document.getElementById('resultSection').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+function showInputSection() {
+  document.getElementById('inputSection').style.display = 'block';
+  document.getElementById('resultSection').classList.remove('on');
+  document.getElementById('analyzeSubtitle').textContent = '공고문을 입력하면 적합성, 전략, 리스크를 분석합니다';
+  document.getElementById('analyzeHeaderActions').innerHTML = '<button class="btn btn-secondary" onclick="loadSample()">📋 샘플 불러오기</button>';
+}
+function loadSample() {
+  switchTab('text');
+  document.getElementById('bidText').value = '사업명: 행정업무 RPA 자동화 플랫폼 구축\n발주기관: 행정안전부\n예산: 12.4억 원';
+}
+function switchTab(tab) {
+  const isText = tab === 'text';
+  document.getElementById('tabText').style.background = isText ? 'var(--blue-500)' : 'var(--surface)';
+  document.getElementById('tabText').style.color = isText ? '#fff' : 'var(--text-3)';
+  document.getElementById('tabFile').style.background = isText ? 'var(--surface)' : 'var(--blue-500)';
+  document.getElementById('tabFile').style.color = isText ? 'var(--text-3)' : '#fff';
+  document.getElementById('inputText').style.display = isText ? 'block' : 'none';
+  document.getElementById('inputFile').style.display = isText ? 'none' : 'block';
+}
+
+function go(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(n => n.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + name);
+  if (pageEl) pageEl.classList.add('on');
+  const map = { collect:0, analyze:1, history:2, docs:3, company:4 };
+  const tabs = document.querySelectorAll('.nav-tab');
+  if (map[name] !== undefined) tabs[map[name]].classList.add('active');
+  if (name === 'analyze') showInputSection();
+  if (name === 'proposal') {
+    const bid = BIDS[currentBid] || BIDS['rpa'];
+    document.getElementById('proposalBannerTitle').textContent = bid.proposalTitle;
+    document.getElementById('generatingBox').classList.add('on');
+    document.getElementById('proposalBody').style.display = 'none';
+    setTimeout(() => { document.getElementById('generatingBox').classList.remove('on'); document.getElementById('proposalBody').style.display = 'block'; }, 2000);
+  }
+  closeAll();
+  window.scrollTo(0, 0);
+}
+
+function doCrawl() { const b = document.getElementById('crawlBar'); b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 2000); }
+function doUpload() {
+  const z = document.getElementById('uploadZone');
+  z.innerHTML = '<div style="font-size:28px;margin-bottom:8px">⏳</div><div style="font-size:13px;font-weight:600">업로드 중...</div>';
+  setTimeout(() => { z.innerHTML = '<div style="font-size:28px;margin-bottom:8px">✅</div><div style="font-size:13px;font-weight:600">업로드 완료</div>'; setTimeout(() => { z.innerHTML = '<div style="font-size:28px;margin-bottom:8px">📤</div><div style="font-size:13px;font-weight:600;margin-bottom:4px">클릭 또는 드래그하여 업로드</div><div style="font-size:11px;color:var(--text-3)">RAG 인덱싱이 자동으로 시작됩니다</div><div style="margin-top:12px"><span class="ftype">PDF</span><span class="ftype">HWP</span><span class="ftype">DOCX</span></div>'; }, 2000); }, 1600);
+}
+function sendComment() {
+  const input = document.getElementById('commentInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const thread = document.getElementById('commentThread');
+  const item = document.createElement('div');
+  item.className = 'comment-item';
+  item.innerHTML = `<div class="comment-avatar" style="background:var(--blue-600)">연</div><div class="comment-bubble"><div class="comment-who">연구소 관리자 <span class="comment-when">· 방금</span></div>${text}</div>`;
+  thread.appendChild(item);
+  input.value = '';
+  item.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function toggleNotif(e) { e.stopPropagation(); const dd = document.getElementById('notifDropdown'); const ov = document.getElementById('overlay'); dd.classList.toggle('on'); ov.classList.toggle('on', dd.classList.contains('on')); }
+function closeAll() { document.getElementById('notifDropdown').classList.remove('on'); document.getElementById('overlay').classList.remove('on'); }
+function markAllRead() { document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread')); document.querySelectorAll('.unread-dot').forEach(el => el.remove()); const badge = document.querySelector('.notif-badge'); if (badge) badge.remove(); }
+function switchSubtab(tab) {
+  const isHistory = tab === 'history';
+  document.getElementById('subtab-content-history').style.display = isHistory ? 'block' : 'none';
+  document.getElementById('subtab-content-proposals').style.display = isHistory ? 'none' : 'block';
+  document.getElementById('subtab-history').style.color = isHistory ? 'var(--blue-500)' : 'var(--text-3)';
+  document.getElementById('subtab-history').style.borderBottomColor = isHistory ? 'var(--blue-500)' : 'transparent';
+  document.getElementById('subtab-proposals').style.color = isHistory ? 'var(--text-3)' : 'var(--blue-500)';
+  document.getElementById('subtab-proposals').style.borderBottomColor = isHistory ? 'transparent' : 'var(--blue-500)';
+  document.getElementById('historyPageSub').textContent = isHistory ? '팀 전체 공고 현황 및 검토 상태 관리' : '작성 중·완료된 지원서를 관리하고 DOCX를 다운로드합니다';
+}
+function histFilter(btn, type) { document.querySelectorAll('#page-history .filter-btn').forEach(b => b.classList.remove('on')); btn.classList.add('on'); document.querySelectorAll('#page-history tbody tr').forEach(r => { r.style.display = (type === 'all' || r.dataset.verdict === type) ? '' : 'none'; }); }
+function docFilter(btn, type) { document.querySelectorAll('#page-docs .filter-btn').forEach(b => b.classList.remove('on')); btn.classList.add('on'); document.querySelectorAll('#docListWrap .doc-row').forEach(r => { r.style.display = (type === 'all' || r.dataset.dtype === type) ? 'flex' : 'none'; }); }
+function toggleSection(id) { document.getElementById(id).classList.toggle('open'); }
+function saveCompanyInfo() { const btn = document.querySelector('#page-company .page-actions .btn-primary'); btn.textContent = '✓ 저장됨'; btn.style.background = 'var(--green)'; setTimeout(() => { btn.textContent = '💾 저장'; btn.style.background = ''; }, 2000); }
+</script>
+</body>
+</html>
