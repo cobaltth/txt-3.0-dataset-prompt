@@ -78,7 +78,6 @@ save(type, data, path, cell)
 type(text)
 press_key(key)
 search(keyword)
-
 4. path, cell처럼 optional인 argument는 필요한 경우에만 출력한다.
 5. Tool의 argument 순서와 의미를 임의로 변경하지 않는다.
 6. 사용자의 요청에 필요한 Tool만 호출한다.
@@ -88,9 +87,17 @@ search(keyword)
 click("검색창") + type(keyword) + press_key("Enter")로 분해하지 않는다.
 9. 사용자의 요청에 여러 작업이 포함된 경우 필요한 Tool을 논리적인 순서로 호출한다.
 10. 앞선 Tool의 결과가 다음 Tool의 입력으로 필요한 경우 변수명을 활용하여 연결한다.
+변수명은 아래 [변수명 규칙]을 따른다.
 예:
-get(..., variable="result")
-→ save(..., data="result", ...)
+get(..., variable="var1")
+→ save(..., data="var1", ...)
+
+11. [변수명 규칙]
+- 변수명은 값을 저장하는 Tool이 호출된 순서대로 var1, var2, var3 ... 을 사용한다.
+- 번호는 request마다 var1부터 새로 시작한다.
+- , price 등 의미 기반 변수명을 사용하지 않는다.
+- 변수를 참조할 때는 앞에서 정의된 변수명을 그대로 사용한다.
+- 정의되지 않은 변수를 참조하지 않는다.
 
 이와 같이 Tool 간 데이터 흐름을 유지한다.
 
@@ -131,12 +138,12 @@ get(..., variable="result")
       "tool": "get",
       "type": "text",
       "target": "검색 결과",
-      "variable": "result"
+      "variable": "var1"
     },
     {
       "tool": "save",
       "type": "excel",
-      "data": "result",
+      "data": "var1",
       "cell": "A1"
     }
   ]
@@ -173,28 +180,6 @@ get(..., variable="result")
 8. Tool의 순서를 임의로 변경하지 않는다.
 
 9. 존재하지 않는 Tool이나 파라미터를 생성하지 않는다.
-
-10. argument 이름은 반드시 다음 정의를 따른다.
-open_url(url)
-click(target)
-get(type, target, variable)
-save(type, data, path, cell)
-type(text)
-press_key(key)
-search(keyword)
-
-11. 앞선 Tool의 결과가 다음 Tool의 입력으로 필요한 경우 변수명을 활용하여 연결한다.
-변수명은 아래 [변수명 규칙]을 따른다.
-예:
-get(..., variable="var1")
-→ save(..., data="var1", ...)
-
-12. [변수명 규칙]
-- 변수명은 값을 저장하는 Tool이 호출된 순서대로 var1, var2, var3 ... 을 사용한다.
-- 번호는 request마다 var1부터 새로 시작한다.
-- result, price 등 의미 기반 변수명을 사용하지 않는다.
-- 변수를 참조할 때는 앞에서 정의된 변수명을 그대로 사용한다.
-- 정의되지 않은 변수를 참조하지 않는다.
 
 --------------------------------------
 
