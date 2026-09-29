@@ -100,18 +100,18 @@ get(..., variable="result")
 
 {
   "request": "사용자의 자연어 요청",
-  "answer": "Tool Calling Sequence"
+  "answer": [
+    {
+      "tool": "Tool 이름",
+      "arg_1": "값",
+      "arg_2": "값"
+    },
+    {
+      "tool": "Tool 이름",
+      "arg_1": "값"
+    }
+  ]
 }
-
-answer는 다음 형식의 JSON 배열을 문자열로 저장한다.
-
-[
-  {
-    "tool": "Tool 이름",
-    "arg_1": "값",
-    "arg_2": "값"
-  }
-]
 
 필요한 경우 arg_3까지 사용할 수 있다.
 
