@@ -19,8 +19,7 @@ Tool 정의 (argument 이름과 순서 고정)
 - search(keyword)
 
 검수 대상 Intent
-- "웹사이트에서 키워드를 검색하고, 검색 결과 또는 사용자가 지정한 데이터를 가져와 Excel에 저장한다."
-- 정답 Tool Sequence 구조: open_url → search → get → save(type="excel")
+
 
 허용 사이트
 - 네이버, 구글, 다음, 쿠팡, 11번가, G마켓, 연합뉴스, 한국경제, 나라장터, 공공데이터포털, 기업마당, 네이버 증권, 한국거래소, 유튜브
