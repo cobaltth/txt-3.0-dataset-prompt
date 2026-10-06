@@ -117,7 +117,7 @@ TXT 3.0은 End-to-end 방식이 아니라 Tool Calling 방식으로 동작한다
 - answer의 각 원소는 "tool" 키와 해당 Tool의 실제 argument 이름을 키로 사용한다.
 
 예시:
-{"request": "네이버에서 증권 들어가서 삼성전가 주가를 엑셀 A1에 저장해줘", "answer": [{"tool": "open_url", "url": "네이버"}, {"tool": "click", "target": "증권"}, {"tool": "get", "type": "text", "target": "삼성전자 주가", "variable": "var1"}, {"tool": "save", "type": "excel", "data": "var1", "cell": "A1"}]}
+{"request": "네이버에서 증권 들어가서 삼성전자 주가를 엑셀 A1에 저장해줘", "answer": [{"tool": "open_url", "url": "네이버"}, {"tool": "click", "target": "증권"}, {"tool": "get", "type": "text", "target": "삼성전자 주가", "variable": "var1"}, {"tool": "save", "type": "excel", "data": "var1", "cell": "A1"}]}
 {"request": "쿠팡에서 무선 이어폰 찾아서 상품명이랑 가격을 가격비교.docx로 저장", "answer": [{"tool": "open_url", "url": "쿠팡"}, {"tool": "search", "keyword": "무선 이어폰"}, {"tool": "get", "type": "table", "target": "상품명과 가격", "variable": "var1"}, {"tool": "save", "type": "word", "data": "var1", "path": "가격비교.docx"}]}
 
 --------------------------------------
