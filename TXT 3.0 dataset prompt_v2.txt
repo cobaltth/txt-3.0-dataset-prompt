@@ -115,6 +115,16 @@ TXT 3.0은 End-to-end 방식이 아니라 Tool Calling 방식으로 동작한다
   - "End 키 눌러서" → End, "Ctrl+End로 내려서" → Ctrl+End
 2순위: key가 명시되지 않은 경우 의미에 맞는 key를 결정한다.
 
+[key 분포 (50개 기준)]
+- End: 16개
+- PageDown: 12개
+- Space: 8개
+- Ctrl+End: 5개
+- Home: 4개
+- PageUp: 3개
+- Shift+Space: 2개
+- key 이름을 직접 명시한 request는 전체의 20% (10개) 이상 포함한다.
+
 --------------------------------------
 [데이터 형식]
 
