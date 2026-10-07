@@ -158,14 +158,8 @@ TXT 3.0은 End-to-end 방식이 아니라 Tool Calling 방식으로 동작한다
 --------------------------------------
 [생성 요청]
 
-Intent:
-"웹사이트에서 키워드를 검색하고, 검색 결과 또는 사용자가 지정한 데이터를 가져와 저장한다."
-
-Tool Sequence 구조:
-open_url → search → get → save
-
 생성 조건:
 - 서로 다른 request 50개를 생성한다.
-- 모든 request는 위 Intent와 Tool Sequence 구조를 따른다.
+- 모든 request는 아래의 Intent와 Tool Sequence 구조를 따른다.
 - 위의 url, keyword, target, type, 분포 규칙을 모두 적용한다.
 - JSONL 형식으로만 출력하며, 설명이나 주석을 추가하지 않는다.
