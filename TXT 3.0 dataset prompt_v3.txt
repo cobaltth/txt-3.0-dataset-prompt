@@ -47,7 +47,7 @@ TXT 3.0이 수행하는 작업은 아래 세 가지다.
 설명: 데이터를 Word 또는 Excel 파일로 저장한다.
 * type: word 또는 excel
 * data: get으로 만든 변수명, 또는 request에 명시된 값
-* path: 파일 경로 또는 파일명 (optional)
+* path: 파일명 또는 파일 경로 (optional, [path] 규칙)
 * cell: Excel 셀 주소 (optional)
 
 [Tool 5] type(text)
@@ -155,6 +155,27 @@ TXT 3.0이 수행하는 작업은 아래 세 가지다.
 - 50개 기준 "검색 결과"와 "현재 페이지" target 합계는 최대 10개로 한다.
 - target은 해당 사이트에 실제로 존재할 법한 대상으로 한다.
 
+[path]
+- path는 request에 쓰인 파일명·경로를 표기 그대로 쓴다.
+  번역, 음차, 대소문자 변경, 구분자(_, -, 공백) 변경, 확장자 변경을 하지 않는다.
+  예: "data.xlsx에 저장" → path="data.xlsx" ("데이터.xlsx" 아님)
+  예: "Price_List.xlsx로 저장" → path="Price_List.xlsx" ("price_list.xlsx" 아님)
+- request의 파일명에는 확장자(.xlsx 또는 .docx)를 붙인다.
+- 폴더 경로를 포함할 수 있다. request에 쓴 구분자(\ 또는 /)를 그대로 유지한다.
+  JSONL에서는 역슬래시를 \\로 쓴다.
+  예: request의 D:\work\bid_list.xlsx → JSONL 값 "D:\\work\\bid_list.xlsx"
+- 바탕화면, 다운로드 폴더처럼 자연어로만 지정한 저장 위치는 생성하지 않는다.
+- 파일명은 업무 맥락에 맞게 짓는다. 의미 없는 문자열(asdf, aaa)을 쓰지 않는다.
+- 분포 (save가 있는 intent, 50개 기준)
+  - path가 있는 request 15개 이상
+  - 그중 한글 파일명 약 6개, 영문 파일명 6개 이상, 한글·영문·숫자 혼합(2026_입찰현황.xlsx, Q3매출.xlsx) 3개 이상
+  - 영문 파일명은 절반 이상을 한글로 번역 가능한 일반 단어(data, result, report, list, price, news 등)로 짓는다.
+  - 영문 표기를 섞는다: 소문자(data.xlsx), 언더바(bid_list.xlsx), 하이픈(daily-report.docx), 대문자 포함(KRX_Daily.xlsx), 숫자·날짜(report_20261020.xlsx)
+  - 폴더 경로를 포함한 request 2개 이상
+  - target과 path가 같은 의미의 다른 언어인 request 2개 이상
+    예: "가격표를 price.xlsx에 저장" → target="가격표", path="price.xlsx"
+  - 파일명 위치와 표현을 섞는다: 문장 앞·중간·끝 / "~에", "~로", "~라는 이름으로", "파일명은 ~"
+
 [get의 type]
 - table: 여러 항목이 행/열로 나열되는 데이터 (목록, 가격표, 주가 표, 순위, 공고 목록 등)
 - text: 단일 항목 또는 문장형 데이터 (첫 번째 기사 본문, 특정 게시글 제목 하나 등), target이 "검색 결과" 또는 "현재 페이지"인 경우
@@ -167,6 +188,7 @@ TXT 3.0이 수행하는 작업은 아래 세 가지다.
 2순위: path 확장자 또는 cell이 명시된 경우 이를 따른다.
   - path가 .xlsx 또는 cell이 명시됨 → excel
   - path가 .docx → word
+  - 확장자는 대소문자를 구분하지 않는다. (.XLSX → excel) path 값은 표기 그대로 쓴다.
 3순위: 형식이 명시되지 않은 경우, 저장할 변수를 만든 get의 type을 따른다.
   - get(type="table") → excel
   - get(type="text") → word
@@ -231,6 +253,7 @@ TXT 3.0이 수행하는 작업은 아래 세 가지다.
 예시:
 {"request": "네이버에서 증권 들어가서 삼성전자 주가를 엑셀 A1에 저장해줘", "answer": [{"tool": "open_url", "url": "네이버"}, {"tool": "click", "target": "증권"}, {"tool": "get", "type": "text", "target": "삼성전자 주가", "variable": "var1"}, {"tool": "save", "type": "excel", "data": "var1", "cell": "A1"}]}
 {"request": "쿠팡에서 무선 이어폰 찾아서 상품명이랑 가격을 가격비교.docx로 저장", "answer": [{"tool": "open_url", "url": "쿠팡"}, {"tool": "search", "keyword": "무선 이어폰"}, {"tool": "get", "type": "table", "target": "상품명과 가격", "variable": "var1"}, {"tool": "save", "type": "word", "data": "var1", "path": "가격비교.docx"}]}
+{"request": "나라장터에서 CCTV 설치 검색하고 입찰공고 목록을 D:\\work\\bid_list.xlsx에 저장", "answer": [{"tool": "open_url", "url": "나라장터"}, {"tool": "search", "keyword": "CCTV 설치"}, {"tool": "get", "type": "table", "target": "입찰공고 목록", "variable": "var1"}, {"tool": "save", "type": "excel", "data": "var1", "path": "D:\\work\\bid_list.xlsx"}]}
 {"request": "https://www.coupang.com 열어서 무선 이어폰 검색해줘", "answer": [{"tool": "open_url", "url": "https://www.coupang.com"}, {"tool": "search", "keyword": "무선 이어폰"}]}
 {"request": "지금 화면에서 무선 이어폰 검색해서 상품명이랑 가격 엑셀로 저장해줘", "answer": [{"tool": "search", "keyword": "무선 이어폰"}, {"tool": "get", "type": "table", "target": "상품명과 가격", "variable": "var1"}, {"tool": "save", "type": "excel", "data": "var1"}]}
 {"request": "유튜브 열어서 캠핑 브이로그 검색만 해줘", "answer": [{"tool": "open_url", "url": "유튜브"}, {"tool": "search", "keyword": "캠핑 브이로그"}]}
@@ -269,7 +292,7 @@ TXT 3.0이 수행하는 작업은 아래 세 가지다.
 - 생략/축약: 4개
 - 업무 맥락 포함 요청: 2개
 - 여러 줄·번호 목록 (예: "1. 네이버 열기\n2. 삼성전자 검색"): 2개
-- 오타·띄어쓰기 오류 (사이트명·URL·검색어·입력 내용은 정확히 쓴다): 2개
+- 오타·띄어쓰기 오류 (사이트명·URL·검색어·입력 내용·파일명은 정확히 쓴다): 2개
 - Tool이 2개 이하인 intent는 복합 자연어와 여러 줄 목록을 업무 맥락 포함 요청으로 바꿔도 된다.
 
 --------------------------------------
@@ -286,6 +309,7 @@ TXT 3.0이 수행하는 작업은 아래 세 가지다.
   ④ optional argument(path, cell)는 request에 있는 정보로만 채웠는가
   ⑤ url은 URL이면 표기 그대로, 이름이면 표준 이름인가. key는 표준 이름이고 대응표와 맞는가
   ⑥ 변수 번호와 참조가 맞는가
+  ⑦ path가 request의 파일명·경로와 문자 단위로 같은가 (번역·대소문자·확장자 변경 없음), 역슬래시를 \\로 썼는가
 - JSONL 형식으로만 출력하며, 설명이나 주석을 추가하지 않는다.
 
 [생성 대상]
